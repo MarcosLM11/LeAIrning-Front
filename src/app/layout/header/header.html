@@ -1,0 +1,55 @@
+<header class="header">
+  <!-- Logo y título -->
+  <div class="header-left">
+    <a routerLink="/" class="logo-link">
+      <i class="pi pi-graduation-cap" style="font-size: 2rem; color: var(--primary-color);"></i>
+      <span class="logo-text">LeAIrning</span>
+    </a>
+  </div>
+
+  <!-- Barra de búsqueda -->
+  <div class="header-center">
+    <span class="p-input-icon-left search-box">
+      <i class="pi pi-search"></i>
+      <input 
+        type="text" 
+        pInputText 
+        placeholder="Buscar documentos..."
+        class="search-input"
+        [value]="searchTerm()"
+        (input)="searchTerm.set($any($event.target).value)"
+      />
+    </span>
+  </div>
+
+  <!-- Acciones de usuario -->
+  <div class="header-right">
+    <!-- Theme Toggle -->
+    <app-theme-toggle />
+
+    <!-- Botón de notificaciones -->
+    <p-button
+      icon="pi pi-bell"
+      [rounded]="true"
+      [text]="true"
+      severity="secondary"
+      [badge]="'3'"
+      badgeSeverity="danger"
+    />
+
+    <!-- Avatar del usuario -->
+    <div class="user-section">
+      <span class="username">{{ currentUser()?.username || 'Usuario' }}</span>
+      <p-avatar 
+        [label]="getUserInitials()" 
+        styleClass="cursor-pointer" 
+        size="large" 
+        shape="circle"
+        [style]="{'background-color': '#667eea', 'color': '#ffffff'}"
+        (click)="menu.toggle($event)"
+      />
+      <p-menu #menu [model]="userMenuItems" [popup]="true" />
+    </div>
+  </div>
+  
+</header>

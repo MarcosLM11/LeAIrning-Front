@@ -1,0 +1,66 @@
+<div class="hero-container">
+  <!-- Animated Background (Gradient Orbs) -->
+  <div class="animated-background">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+  </div>
+
+  <!-- Particles Effect -->
+  <div class="particles">
+    @for (particle of particles; track $index) {
+      <div
+        class="particle"
+        [style.left.%]="particle.x"
+        [style.animation-delay]="particle.delay + 's'"
+        [style.animation-duration]="particle.duration + 's'"
+      ></div>
+    }
+  </div>
+
+  <!-- Hero Content -->
+  <div class="hero-content">
+    <!-- Greeting Section -->
+    <div class="greeting-section">
+      <div class="greeting-icon">
+        <i class="pi pi-sparkles"></i>
+      </div>
+      <div class="greeting-text">
+        <h1 class="greeting-title">{{ getGreeting() }}</h1>
+        <p class="greeting-subtitle">{{ greeting }}</p>
+      </div>
+    </div>
+
+    <!-- AI Suggestion (if provided) -->
+    @if (suggestion) {
+      <div class="ai-suggestion">
+        <div class="suggestion-icon">
+          <i class="pi pi-bolt"></i>
+        </div>
+        <p class="suggestion-text">{{ suggestion }}</p>
+        <button class="suggestion-action">
+          <span>Comenzar</span>
+          <i class="pi pi-arrow-right"></i>
+        </button>
+      </div>
+    }
+
+    <!-- Quick Actions -->
+    @if (quickActions.length > 0) {
+      <div class="quick-actions">
+        @for (action of quickActions; track action.label) {
+          <button
+            class="quick-action-btn"
+            [style.--action-color]="action.color"
+            (click)="handleQuickAction(action)"
+          >
+            <div class="action-icon-wrapper">
+              <i [class]="'pi ' + action.icon"></i>
+            </div>
+            <span class="action-label">{{ action.label }}</span>
+          </button>
+        }
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,536 @@
+/**
+ * LeAIrning Design System
+ * Sistema de diseño global para mantener consistencia visual
+ * Inspirado en la estética de las páginas de Login/Registro
+ */
+
+:root {
+  // ============================================================================
+  // COLORS - Sistema de colores principal
+  // ============================================================================
+
+  // Primary (Indigo)
+  --primary-color: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-light: #818cf8;
+  --primary-lighter: #a5b4fc;
+  --primary-dark: #3730a3;
+
+  // Semantic Colors
+  --success-color: #10b981;
+  --success-light: #34d399;
+  --warning-color: #f59e0b;
+  --warning-light: #fbbf24;
+  --error-color: #ef4444;
+  --error-light: #f87171;
+  --info-color: #3b82f6;
+  --info-light: #60a5fa;
+
+  // Text Colors
+  --text-main: #111827;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --text-inverse: #ffffff;
+
+  // Background Colors
+  --bg-main: #f3f4f6;
+  --bg-secondary: #e5e7eb;
+  --bg-tertiary: #d1d5db;
+
+  // Surface Colors (Cards, modals, etc.)
+  --card-bg: #ffffff;
+  --card-bg-hover: #fafafa;
+
+  // Border Colors
+  --border-color: #e5e7eb;
+  --border-color-hover: #cbd5e1;
+  --border-color-focus: var(--primary-color);
+
+  // ============================================================================
+  // SPACING SYSTEM - Sistema de espaciado consistente
+  // ============================================================================
+
+  --spacing-xs: 0.25rem;    // 4px
+  --spacing-sm: 0.5rem;     // 8px
+  --spacing-md: 1rem;       // 16px
+  --spacing-lg: 1.5rem;     // 24px
+  --spacing-xl: 2rem;       // 32px
+  --spacing-2xl: 3rem;      // 48px
+  --spacing-3xl: 4rem;      // 64px
+  --spacing-4xl: 6rem;      // 96px
+
+  // ============================================================================
+  // BORDER RADIUS - Bordes redondeados
+  // ============================================================================
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  // ============================================================================
+  // SHADOWS - Sistema de sombras
+  // ============================================================================
+
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-2xl: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
+
+  // Colored Shadows (para botones y elementos destacados)
+  --shadow-primary: 0 4px 12px rgba(79, 70, 229, 0.3);
+  --shadow-primary-lg: 0 8px 20px rgba(79, 70, 229, 0.4);
+  --shadow-success: 0 4px 12px rgba(16, 185, 129, 0.3);
+  --shadow-warning: 0 4px 12px rgba(245, 158, 11, 0.3);
+  --shadow-error: 0 4px 12px rgba(239, 68, 68, 0.3);
+
+  // ============================================================================
+  // TRANSITIONS - Velocidades de animación
+  // ============================================================================
+
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slower: 700ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  // Easing functions
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  // ============================================================================
+  // TYPOGRAPHY - Sistema tipográfico
+  // ============================================================================
+
+  // Font Families
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-family-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+
+  // Font Sizes
+  --text-xs: 0.75rem;       // 12px
+  --text-sm: 0.875rem;      // 14px
+  --text-base: 1rem;        // 16px
+  --text-lg: 1.125rem;      // 18px
+  --text-xl: 1.25rem;       // 20px
+  --text-2xl: 1.5rem;       // 24px
+  --text-3xl: 1.875rem;     // 30px
+  --text-4xl: 2.25rem;      // 36px
+  --text-5xl: 3rem;         // 48px
+
+  // Font Weights
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+
+  // Line Heights
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+
+  // Letter Spacing
+  --tracking-tighter: -0.05em;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+
+  // ============================================================================
+  // Z-INDEX - Capas de profundidad
+  // ============================================================================
+
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-popover: 500;
+  --z-tooltip: 600;
+  --z-notification: 700;
+
+  // ============================================================================
+  // GRADIENTS - Gradientes predefinidos
+  // ============================================================================
+
+  --gradient-primary: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  --gradient-success: linear-gradient(135deg, var(--success-color), var(--success-light));
+  --gradient-warning: linear-gradient(135deg, var(--warning-color), var(--warning-light));
+  --gradient-error: linear-gradient(135deg, var(--error-color), var(--error-light));
+
+  // Gradient overlays
+  --gradient-overlay-dark: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.3));
+  --gradient-overlay-light: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.3));
+
+  // ============================================================================
+  // BACKDROP FILTERS
+  // ============================================================================
+
+  --backdrop-blur-sm: blur(4px);
+  --backdrop-blur-md: blur(8px);
+  --backdrop-blur-lg: blur(12px);
+  --backdrop-blur-xl: blur(16px);
+}
+
+// ============================================================================
+// DARK THEME - Tema oscuro
+// ============================================================================
+
+.dark-theme,
+:root[data-theme="dark"] {
+  // Text Colors
+  --text-main: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-tertiary: #9ca3af;
+  --text-inverse: #111827;
+
+  // Background Colors
+  --bg-main: #111827;
+  --bg-secondary: #1f2937;
+  --bg-tertiary: #374151;
+
+  // Surface Colors
+  --card-bg: #1f2937;
+  --card-bg-hover: #374151;
+
+  // Border Colors
+  --border-color: #374151;
+  --border-color-hover: #4b5563;
+
+  // Shadows (más pronunciadas en dark mode)
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  --shadow-2xl: 0 30px 60px -15px rgba(0, 0, 0, 0.7);
+}
+
+// ============================================================================
+// UTILITY CLASSES - Clases utilitarias globales
+// ============================================================================
+
+// Flexbox utilities
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-row { flex-direction: row; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.gap-xs { gap: var(--spacing-xs); }
+.gap-sm { gap: var(--spacing-sm); }
+.gap-md { gap: var(--spacing-md); }
+.gap-lg { gap: var(--spacing-lg); }
+.gap-xl { gap: var(--spacing-xl); }
+
+// Grid utilities
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+// Text utilities
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.font-bold { font-weight: var(--font-bold); }
+.font-semibold { font-weight: var(--font-semibold); }
+.font-medium { font-weight: var(--font-medium); }
+
+// Width utilities
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+
+// Position utilities
+.relative { position: relative; }
+.absolute { position: absolute; }
+.fixed { position: fixed; }
+
+// Overflow utilities
+.overflow-hidden { overflow: hidden; }
+.overflow-auto { overflow: auto; }
+
+// Cursor utilities
+.cursor-pointer { cursor: pointer; }
+.cursor-not-allowed { cursor: not-allowed; }
+
+// ============================================================================
+// ANIMATIONS - Animaciones globales reutilizables
+// ============================================================================
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+  20%, 40%, 60%, 80% { transform: translateX(10px); }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  33% {
+    transform: translate(30px, -30px);
+  }
+  66% {
+    transform: translate(-20px, 20px);
+  }
+}
+
+@keyframes rise {
+  0% {
+    bottom: -10px;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    bottom: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+// ============================================================================
+// ANIMATION CLASSES - Clases de animación aplicables
+// ============================================================================
+
+.animate-slide-up {
+  animation: slideUp 0.6s var(--ease-out);
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s var(--ease-out);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s var(--ease-out);
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s var(--ease-out);
+}
+
+.animate-shake {
+  animation: shake 0.6s var(--ease-in-out);
+}
+
+.animate-pulse {
+  animation: pulse 2s var(--ease-in-out) infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-float {
+  animation: float 20s var(--ease-in-out) infinite;
+}
+
+// ============================================================================
+// RESPONSIVE BREAKPOINTS
+// ============================================================================
+
+// Mobile first approach
+$breakpoint-sm: 640px;   // Small devices
+$breakpoint-md: 768px;   // Medium devices
+$breakpoint-lg: 1024px;  // Large devices
+$breakpoint-xl: 1280px;  // Extra large devices
+$breakpoint-2xl: 1536px; // 2X Extra large devices
+
+// Mixins para media queries
+@mixin sm {
+  @media (min-width: $breakpoint-sm) {
+    @content;
+  }
+}
+
+@mixin md {
+  @media (min-width: $breakpoint-md) {
+    @content;
+  }
+}
+
+@mixin lg {
+  @media (min-width: $breakpoint-lg) {
+    @content;
+  }
+}
+
+@mixin xl {
+  @media (min-width: $breakpoint-xl) {
+    @content;
+  }
+}
+
+@mixin xxl {
+  @media (min-width: $breakpoint-2xl) {
+    @content;
+  }
+}
+
+// Max-width mixins
+@mixin max-sm {
+  @media (max-width: #{$breakpoint-sm - 1px}) {
+    @content;
+  }
+}
+
+@mixin max-md {
+  @media (max-width: #{$breakpoint-md - 1px}) {
+    @content;
+  }
+}
+
+@mixin max-lg {
+  @media (max-width: #{$breakpoint-lg - 1px}) {
+    @content;
+  }
+}
+
+@mixin max-xl {
+  @media (max-width: #{$breakpoint-xl - 1px}) {
+    @content;
+  }
+}
+
+@mixin max-xxl {
+  @media (max-width: #{$breakpoint-2xl - 1px}) {
+    @content;
+  }
+}

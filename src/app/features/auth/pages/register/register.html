@@ -1,0 +1,317 @@
+<div class="register-container">
+  <!-- Animated Background -->
+  <div class="animated-background">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+  </div>
+
+  <!-- Theme Toggle -->
+  <app-theme-toggle />
+
+  <!-- Floating Card -->
+  <div class="auth-card" [class.shake]="showShakeAnimation()">
+    <div class="card-content">
+      <!-- Progress Indicator -->
+      <div class="progress-indicator">
+        <div class="step" [class.active]="currentStep() >= 1" [class.completed]="currentStep() > 1">
+          <div class="step-circle">
+            @if (currentStep() > 1) {
+              <i class="pi pi-check"></i>
+            } @else {
+              <span>1</span>
+            }
+          </div>
+          <span class="step-label">Usuario</span>
+        </div>
+        <div class="progress-line" [class.active]="currentStep() >= 2"></div>
+        <div class="step" [class.active]="currentStep() >= 2" [class.completed]="currentStep() > 2">
+          <div class="step-circle">
+            @if (currentStep() > 2) {
+              <i class="pi pi-check"></i>
+            } @else {
+              <span>2</span>
+            }
+          </div>
+          <span class="step-label">Email</span>
+        </div>
+        <div class="progress-line" [class.active]="currentStep() >= 3"></div>
+        <div class="step" [class.active]="currentStep() >= 3" [class.completed]="currentStep() > 3">
+          <div class="step-circle">
+            @if (currentStep() > 3) {
+              <i class="pi pi-check"></i>
+            } @else {
+              <span>3</span>
+            }
+          </div>
+          <span class="step-label">Contraseña</span>
+        </div>
+      </div>
+
+      <!-- Illustration -->
+      <div class="illustration-section">
+        <app-auth-illustration [type]="'register'" />
+      </div>
+
+      <!-- Brand Header -->
+      <div class="brand-header">
+        <div class="logo-icon">
+          <i class="pi pi-graduation-cap"></i>
+        </div>
+        <span class="brand-name">LeAIrning</span>
+      </div>
+
+      <div class="welcome-text">
+        <h1>¡Únete a LeAIrning!</h1>
+        <p>Comienza tu viaje de aprendizaje con IA</p>
+      </div>
+
+      @if (currentStep() === 1) {
+        <!-- Social Login -->
+        <div class="social-login">
+          <button 
+            type="button" 
+            class="social-btn google-btn"
+            (click)="registerWithGoogle()"
+            [disabled]="isSubmitting()"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="20px" height="20px">
+              <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+              <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+              <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+              <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+            </svg>
+            <span>Continuar con Google</span>
+          </button>
+          <button 
+            type="button" 
+            class="social-btn github-btn"
+            (click)="registerWithGithub()"
+            [disabled]="isSubmitting()"
+          >
+            <i class="pi pi-github"></i>
+            <span>Continuar con GitHub</span>
+          </button>
+        </div>
+
+        <div class="divider">
+          <span>O regístrate con email</span>
+        </div>
+      }
+
+      @if (errorMessage()) {
+        <div class="error-alert">
+          <i class="pi pi-exclamation-circle"></i>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <!-- Step 1: Username -->
+        @if (currentStep() === 1) {
+          <div class="step-content" @slideIn>
+            <div class="form-field" [class.has-success]="usernameControl?.valid && usernameControl?.touched">
+              <label for="username">
+                <i class="pi pi-user"></i>
+                Nombre de usuario
+              </label>
+              <input 
+                id="username"
+                type="text"
+                pInputText
+                formControlName="username"
+                placeholder="johndoe"
+                class="w-full"
+                [class.error]="usernameControl?.invalid && usernameControl?.touched"
+                (keydown.enter)="nextStep()"
+              />
+              @if (usernameControl?.valid && usernameControl?.touched) {
+                <i class="pi pi-check-circle success-icon"></i>
+              }
+              @if (usernameControl?.invalid && usernameControl?.touched) {
+                <small class="error-message">
+                  <i class="pi pi-times-circle"></i>
+                  @if (usernameControl?.errors?.['required']) {
+                    El nombre de usuario es obligatorio
+                  }
+                  @if (usernameControl?.errors?.['minlength']) {
+                    Mínimo 3 caracteres
+                  }
+                  @if (usernameControl?.errors?.['maxlength']) {
+                    Máximo 20 caracteres
+                  }
+                </small>
+              }
+            </div>
+
+            <button 
+              type="button"
+              class="submit-btn"
+              (click)="nextStep()"
+              [disabled]="!isCurrentStepValid()"
+            >
+              <span>Siguiente</span>
+              <i class="pi pi-arrow-right"></i>
+            </button>
+          </div>
+        }
+
+        <!-- Step 2: Email -->
+        @if (currentStep() === 2) {
+          <div class="step-content" @slideIn>
+            <div class="form-field" [class.has-success]="emailControl?.valid && emailControl?.touched">
+              <label for="email">
+                <i class="pi pi-envelope"></i>
+                Correo Electrónico
+              </label>
+              <input 
+                id="email"
+                type="email"
+                pInputText
+                formControlName="email"
+                placeholder="tu@email.com"
+                class="w-full"
+                [class.error]="emailControl?.invalid && emailControl?.touched"
+                (keydown.enter)="nextStep()"
+              />
+              @if (emailControl?.valid && emailControl?.touched) {
+                <i class="pi pi-check-circle success-icon"></i>
+              }
+              @if (emailControl?.invalid && emailControl?.touched) {
+                <small class="error-message">
+                  <i class="pi pi-times-circle"></i>
+                  @if (emailControl?.errors?.['required']) {
+                    El email es obligatorio
+                  }
+                  @if (emailControl?.errors?.['email']) {
+                    Ingresa un email válido
+                  }
+                </small>
+              }
+            </div>
+
+            <div class="step-buttons">
+              <button 
+                type="button"
+                class="back-btn"
+                (click)="prevStep()"
+              >
+                <i class="pi pi-arrow-left"></i>
+                <span>Atrás</span>
+              </button>
+              <button 
+                type="button"
+                class="submit-btn"
+                (click)="nextStep()"
+                [disabled]="!isCurrentStepValid()"
+              >
+                <span>Siguiente</span>
+                <i class="pi pi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Step 3: Password -->
+        @if (currentStep() === 3) {
+          <div class="step-content" @slideIn>
+            <div class="form-field" [class.has-success]="passwordControl?.valid && passwordControl?.touched">
+              <label for="password">
+                <i class="pi pi-lock"></i>
+                Contraseña
+              </label>
+              <p-password 
+                id="password"
+                formControlName="password"
+                placeholder="••••••••"
+                [toggleMask]="true"
+                [feedback]="true"
+                styleClass="w-full"
+                inputStyleClass="w-full"
+                [class.error]="passwordControl?.invalid && passwordControl?.touched"
+              />
+              @if (passwordControl?.invalid && passwordControl?.touched) {
+                <small class="error-message">
+                  <i class="pi pi-times-circle"></i>
+                  @if (passwordControl?.errors?.['required']) {
+                    La contraseña es obligatoria
+                  }
+                  @if (passwordControl?.errors?.['minlength']) {
+                    Mínimo 6 caracteres
+                  }
+                </small>
+              }
+            </div>
+
+            <div class="form-field" [class.has-success]="confirmPasswordControl?.valid && confirmPasswordControl?.touched && !registerForm.errors?.['passwordMismatch']">
+              <label for="confirmPassword">
+                <i class="pi pi-lock"></i>
+                Confirmar contraseña
+              </label>
+              <p-password 
+                id="confirmPassword"
+                formControlName="confirmPassword"
+                placeholder="••••••••"
+                [toggleMask]="true"
+                [feedback]="false"
+                styleClass="w-full"
+                inputStyleClass="w-full"
+                [class.error]="(registerForm.errors?.['passwordMismatch'] || confirmPasswordControl?.invalid) && (confirmPasswordControl?.touched || confirmPasswordControl?.dirty)"
+              />
+              @if (confirmPasswordControl?.valid && !registerForm.errors?.['passwordMismatch'] && confirmPasswordControl?.touched) {
+                <i class="pi pi-check-circle success-icon"></i>
+              }
+              @if (registerForm.errors?.['passwordMismatch'] && (confirmPasswordControl?.touched || confirmPasswordControl?.dirty)) {
+                <small class="error-message">
+                  <i class="pi pi-times-circle"></i>
+                  Las contraseñas no coinciden
+                </small>
+              }
+            </div>
+
+            <div class="step-buttons">
+              <button 
+                type="button"
+                class="back-btn"
+                (click)="prevStep()"
+              >
+                <i class="pi pi-arrow-left"></i>
+                <span>Atrás</span>
+              </button>
+              <button 
+                type="submit"
+                class="submit-btn"
+                [disabled]="!isCurrentStepValid() || isSubmitting()"
+                [class.loading]="isSubmitting()"
+              >
+                @if (isSubmitting()) {
+                  <i class="pi pi-spin pi-spinner"></i>
+                  <span>Creando cuenta...</span>
+                } @else {
+                  <span>Crear Cuenta</span>
+                  <i class="pi pi-check"></i>
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </form>
+
+      <div class="login-link">
+        <p>¿Ya tienes cuenta? <a routerLink="/auth/login">Iniciar sesión</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Particles Effect -->
+  <div class="particles">
+    @for (particle of particles; track $index) {
+      <div 
+        class="particle" 
+        [style.left.%]="particle.x"
+        [style.animation-delay]="particle.delay + 's'"
+        [style.animation-duration]="particle.duration + 's'"
+      ></div>
+    }
+  </div>
+</div>

@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "LeAIrning-Front": {
+    "LeAIrning-front-app": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -57,19 +57,26 @@
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "outputMode": "static"
             }
           },
           "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "port": 4200,
+            "open": false,
+            "liveReload": true,
+            "watch": true
+          },
           "configurations": {
             "production": {
-              "buildTarget": "LeAIrning-Front:build:production"
+              "buildTarget": "LeAIrning-front-app:build:production"
             },
             "development": {
-              "buildTarget": "LeAIrning-Front:build:development"
+              "buildTarget": "LeAIrning-front-app:build:development"
             }
           },
           "defaultConfiguration": "development"

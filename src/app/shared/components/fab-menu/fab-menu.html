@@ -1,0 +1,36 @@
+<div class="fab-container">
+  <!-- Backdrop (cuando está abierto) -->
+  @if (isOpen()) {
+    <div class="fab-backdrop" (click)="toggleFab()"></div>
+  }
+
+  <!-- Botón principal FAB -->
+  <button
+    class="fab-main"
+    [class.open]="isOpen()"
+    (click)="toggleFab()"
+    type="button"
+  >
+    <i [class]="isOpen() ? 'pi pi-times' : 'pi pi-plus'"></i>
+  </button>
+
+  <!-- Acciones del FAB -->
+  @if (isOpen()) {
+    <div class="fab-actions">
+      @for (action of actions; track $index) {
+        <button
+          class="fab-action"
+          [style.--action-color]="action.color"
+          [style.--delay]="($index * 0.05) + 's'"
+          (click)="handleAction(action)"
+          type="button"
+        >
+          <div class="action-icon">
+            <i [class]="'pi ' + action.icon"></i>
+          </div>
+          <span class="action-label">{{ action.label }}</span>
+        </button>
+      }
+    </div>
+  }
+</div>

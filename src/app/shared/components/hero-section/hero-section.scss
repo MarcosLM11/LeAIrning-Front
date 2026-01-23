@@ -1,0 +1,398 @@
+@import '../../styles/design-system';
+
+.hero-container {
+  position: relative;
+  background: var(--card-bg);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem 2rem;
+  overflow: hidden;
+  margin-bottom: var(--spacing-2xl);
+  border: 2px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.6s var(--ease-out);
+
+  @include md {
+    padding: 3rem 2.5rem;
+  }
+}
+
+// ============================================================================
+// ANIMATED BACKGROUND - Orbs gradient flotantes
+// ============================================================================
+
+.animated-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 0.6;
+
+  .gradient-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.4;
+    animation: float 20s var(--ease-in-out) infinite;
+
+    &.orb-1 {
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, var(--primary-color), transparent);
+      top: -20%;
+      left: -10%;
+      animation-delay: 0s;
+    }
+
+    &.orb-2 {
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, var(--primary-light), transparent);
+      bottom: -20%;
+      right: -10%;
+      animation-delay: 7s;
+    }
+
+    &.orb-3 {
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, #6366f1, transparent);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation-delay: 14s;
+    }
+  }
+}
+
+// ============================================================================
+// PARTICLES - Partículas ascendentes
+// ============================================================================
+
+.particles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+
+  .particle {
+    position: absolute;
+    bottom: -10px;
+    width: 3px;
+    height: 3px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    opacity: 0;
+    animation: rise linear infinite;
+  }
+}
+
+// ============================================================================
+// HERO CONTENT
+// ============================================================================
+
+.hero-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+// ============================================================================
+// GREETING SECTION
+// ============================================================================
+
+.greeting-section {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  animation: slideInLeft 0.8s var(--ease-out);
+
+  .greeting-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--gradient-primary);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-primary);
+    animation: pulse 3s var(--ease-in-out) infinite;
+
+    i {
+      font-size: 2rem;
+      color: white;
+    }
+
+    @include max-md {
+      width: 48px;
+      height: 48px;
+
+      i {
+        font-size: 1.5rem;
+      }
+    }
+  }
+
+  .greeting-text {
+    flex: 1;
+
+    .greeting-title {
+      font-size: var(--text-3xl);
+      font-weight: var(--font-extrabold);
+      color: var(--text-main);
+      margin-bottom: var(--spacing-xs);
+      letter-spacing: var(--tracking-tight);
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+
+      @include max-md {
+        font-size: var(--text-2xl);
+      }
+    }
+
+    .greeting-subtitle {
+      font-size: var(--text-base);
+      color: var(--text-secondary);
+      font-weight: var(--font-medium);
+
+      @include max-md {
+        font-size: var(--text-sm);
+      }
+    }
+  }
+}
+
+// ============================================================================
+// AI SUGGESTION BOX
+// ============================================================================
+
+.ai-suggestion {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(129, 140, 248, 0.05));
+  border: 2px solid rgba(79, 70, 229, 0.2);
+  border-radius: var(--radius-md);
+  animation: slideInRight 0.8s var(--ease-out) 0.2s both;
+  transition: all var(--transition-base);
+
+  &:hover {
+    border-color: var(--primary-color);
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(129, 140, 248, 0.1));
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .suggestion-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--gradient-primary);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-primary);
+
+    i {
+      font-size: 1.25rem;
+      color: white;
+      animation: pulse 2s var(--ease-in-out) infinite;
+    }
+  }
+
+  .suggestion-text {
+    flex: 1;
+    color: var(--text-main);
+    font-weight: var(--font-semibold);
+    font-size: var(--text-sm);
+
+    @include md {
+      font-size: var(--text-base);
+    }
+  }
+
+  .suggestion-action {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: 0.625rem 1.25rem;
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: var(--font-bold);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    box-shadow: var(--shadow-primary);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-primary-lg);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    @include max-md {
+      padding: 0.5rem 1rem;
+      font-size: var(--text-xs);
+
+      span {
+        display: none;
+      }
+
+      i {
+        margin: 0;
+      }
+    }
+  }
+}
+
+// ============================================================================
+// QUICK ACTIONS
+// ============================================================================
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--spacing-md);
+  animation: fadeIn 1s var(--ease-out) 0.4s both;
+
+  @include md {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--spacing-lg);
+  }
+}
+
+.quick-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg);
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+
+  // Gradient overlay on hover
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--action-color), transparent);
+    opacity: 0;
+    transition: opacity var(--transition-base);
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--action-color);
+
+    &::before {
+      opacity: 0.1;
+    }
+
+    .action-icon-wrapper {
+      transform: scale(1.1) rotate(5deg);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  &:active {
+    transform: translateY(-2px);
+  }
+
+  .action-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    background: var(--action-color);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-base);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 1;
+
+    i {
+      font-size: 1.5rem;
+      color: white;
+    }
+  }
+
+  .action-label {
+    font-weight: var(--font-semibold);
+    font-size: var(--text-sm);
+    color: var(--text-main);
+    text-align: center;
+    position: relative;
+    z-index: 1;
+
+    @include md {
+      font-size: var(--text-base);
+    }
+  }
+}
+
+// ============================================================================
+// RESPONSIVE ADJUSTMENTS
+// ============================================================================
+
+@include max-md {
+  .hero-container {
+    padding: 2rem 1.5rem;
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .greeting-section {
+    gap: var(--spacing-md);
+  }
+
+  .ai-suggestion {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+
+    .suggestion-action {
+      align-self: stretch;
+      justify-content: center;
+    }
+  }
+
+  .quick-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@include max-sm {
+  .quick-action-btn {
+    padding: var(--spacing-md);
+
+    .action-icon-wrapper {
+      width: 48px;
+      height: 48px;
+
+      i {
+        font-size: 1.25rem;
+      }
+    }
+
+    .action-label {
+      font-size: var(--text-xs);
+    }
+  }
+}

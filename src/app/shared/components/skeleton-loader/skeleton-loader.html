@@ -1,0 +1,12 @@
+@for (item of items; track $index) {
+  <div
+    class="skeleton"
+    [class.skeleton-circle]="circle || shape === 'circle' || shape === 'avatar'"
+    [class.skeleton-text]="shape === 'text'"
+    [class.skeleton-card]="shape === 'card'"
+    [class.skeleton-pulse]="animation === 'pulse'"
+    [class.skeleton-wave]="animation === 'wave'"
+    [style.width]="width"
+    [style.height]="height"
+  ></div>
+}

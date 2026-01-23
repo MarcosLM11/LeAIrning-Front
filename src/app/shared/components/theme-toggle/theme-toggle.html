@@ -1,0 +1,16 @@
+<button
+  class="theme-toggle-btn"
+  (click)="toggleTheme()"
+  [attr.aria-label]="isDarkMode() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
+  type="button"
+>
+  <div class="toggle-icon-wrapper">
+    <!-- Sun icon (modo claro) -->
+    <i class="pi pi-sun sun-icon" [class.active]="!isDarkMode()"></i>
+
+    <!-- Moon icon (modo oscuro) -->
+    <i class="pi pi-moon moon-icon" [class.active]="isDarkMode()"></i>
+  </div>
+
+  <div class="toggle-slider" [class.dark]="isDarkMode()"></div>
+</button>

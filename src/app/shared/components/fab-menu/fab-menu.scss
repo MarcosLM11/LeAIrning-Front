@@ -1,0 +1,222 @@
+@use '../../styles/design-system' as *;
+
+.fab-container {
+  position: fixed;
+  bottom: var(--spacing-2xl);
+  right: var(--spacing-2xl);
+  z-index: var(--z-modal);
+
+  @include max-md {
+    bottom: var(--spacing-xl);
+    right: var(--spacing-xl);
+  }
+
+  @include max-sm {
+    bottom: var(--spacing-lg);
+    right: var(--spacing-lg);
+  }
+}
+
+// ============================================================================
+// BACKDROP
+// ============================================================================
+
+.fab-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s var(--ease-out);
+  z-index: -1;
+  cursor: pointer;
+}
+
+// ============================================================================
+// FAB MAIN BUTTON
+// ============================================================================
+
+.fab-main {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  border: none;
+  color: white;
+  font-size: 1.75rem;
+  box-shadow: var(--shadow-primary-lg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-base);
+  position: relative;
+  z-index: 10;
+
+  i {
+    transition: all var(--transition-base);
+  }
+
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 32px rgba(79, 70, 229, 0.5);
+  }
+
+  &:active {
+    transform: scale(1.05);
+  }
+
+  &.open {
+    transform: rotate(90deg);
+
+    &:hover {
+      transform: rotate(90deg) scale(1.1);
+    }
+  }
+
+  @include max-sm {
+    width: 56px;
+    height: 56px;
+    font-size: 1.5rem;
+  }
+}
+
+// ============================================================================
+// FAB ACTIONS
+// ============================================================================
+
+.fab-actions {
+  position: absolute;
+  bottom: 80px;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-width: 200px;
+
+  @include max-sm {
+    bottom: 72px;
+    min-width: 180px;
+  }
+}
+
+.fab-action {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-base);
+  animation: slideInRight 0.3s var(--ease-out);
+  animation-delay: var(--delay);
+  animation-fill-mode: both;
+  position: relative;
+  overflow: hidden;
+
+  // Gradient overlay on hover
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--action-color), transparent);
+    opacity: 0;
+    transition: opacity var(--transition-base);
+  }
+
+  &:hover {
+    transform: translateX(-4px) scale(1.05);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--action-color);
+
+    &::before {
+      opacity: 0.15;
+    }
+
+    .action-icon {
+      transform: scale(1.1) rotate(10deg);
+      background: var(--action-color);
+    }
+
+    .action-label {
+      color: var(--action-color);
+    }
+  }
+
+  &:active {
+    transform: translateX(-2px) scale(1);
+  }
+
+  .action-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--action-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-base);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+    i {
+      font-size: 1.125rem;
+      color: white;
+    }
+  }
+
+  .action-label {
+    font-weight: var(--font-semibold);
+    font-size: var(--text-sm);
+    color: var(--text-main);
+    white-space: nowrap;
+    position: relative;
+    z-index: 1;
+    transition: color var(--transition-fast);
+  }
+
+  @include max-sm {
+    padding: var(--spacing-sm) var(--spacing-md);
+
+    .action-icon {
+      width: 36px;
+      height: 36px;
+
+      i {
+        font-size: 1rem;
+      }
+    }
+
+    .action-label {
+      font-size: var(--text-xs);
+    }
+  }
+}
+
+// ============================================================================
+// ANIMATIONS
+// ============================================================================
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

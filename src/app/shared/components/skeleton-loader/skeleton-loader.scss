@@ -1,0 +1,80 @@
+@use '../../styles/design-system' as *;
+
+.skeleton {
+  background: var(--bg-main);
+  border-radius: var(--radius-sm);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--spacing-sm);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--border-color) 50%,
+      transparent 100%
+    );
+    animation: shimmer 2s infinite;
+  }
+}
+
+// ============================================================================
+// SHAPES
+// ============================================================================
+
+.skeleton-circle {
+  border-radius: 50%;
+}
+
+.skeleton-text {
+  height: 16px;
+  border-radius: var(--radius-xs);
+  margin-bottom: var(--spacing-xs);
+
+  &:last-child {
+    width: 80%;
+  }
+}
+
+.skeleton-card {
+  height: 200px;
+  border-radius: var(--radius-lg);
+}
+
+// ============================================================================
+// ANIMATIONS
+// ============================================================================
+
+.skeleton-wave::before {
+  animation: shimmer 2s infinite;
+}
+
+.skeleton-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  &::before {
+    display: none;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
