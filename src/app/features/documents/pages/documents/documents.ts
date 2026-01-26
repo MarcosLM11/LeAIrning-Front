@@ -10,7 +10,6 @@ import {
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
@@ -20,6 +19,7 @@ import { DialogModule } from 'primeng/dialog';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TooltipModule } from 'primeng/tooltip';
 import { InputTextModule } from 'primeng/inputtext';
+import { PaginatorModule } from 'primeng/paginator';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { DocumentService } from '../../../../core/services/document';
 import {
@@ -46,6 +46,11 @@ interface TypeOption {
   value: DocumentType | null;
 }
 
+interface SortOption {
+  label: string;
+  value: { field: 'createdAt' | 'originalFilename' | 'fileSize'; order: 'asc' | 'desc' };
+}
+
 const ALLOWED_EXTENSIONS = ['pdf', 'txt', 'csv', 'doc', 'docx', 'md'];
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
@@ -54,7 +59,6 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
   imports: [
     CommonModule,
     FormsModule,
-    TableModule,
     ButtonModule,
     SelectModule,
     TagModule,
@@ -63,7 +67,8 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
     DialogModule,
     ProgressBarModule,
     TooltipModule,
-    InputTextModule
+    InputTextModule,
+    PaginatorModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './documents.html',
@@ -96,6 +101,21 @@ export class Documents implements OnInit, OnDestroy {
   showDetailDialog = signal(false);
   selectedDocument = signal<Document | null>(null);
 
+  // Search
+  searchQuery = signal('');
+
+  // Sorting
+  sortField = signal<'createdAt' | 'originalFilename' | 'fileSize'>('createdAt');
+  sortOrder = signal<'asc' | 'desc'>('desc');
+
+  // Selection for bulk actions
+  selectedDocuments = signal<Set<number>>(new Set());
+  isSelectionMode = signal(false);
+
+  // Quick preview
+  showQuickPreview = signal(false);
+  previewDocument = signal<Document | null>(null);
+
   // Polling interval for processing documents
   private pollingInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -117,6 +137,15 @@ export class Documents implements OnInit, OnDestroy {
     { label: 'Markdown', value: 'MARKDOWN' }
   ];
 
+  sortOptions: SortOption[] = [
+    { label: 'Más recientes', value: { field: 'createdAt', order: 'desc' } },
+    { label: 'Más antiguos', value: { field: 'createdAt', order: 'asc' } },
+    { label: 'Nombre (A-Z)', value: { field: 'originalFilename', order: 'asc' } },
+    { label: 'Nombre (Z-A)', value: { field: 'originalFilename', order: 'desc' } },
+    { label: 'Mayor tamaño', value: { field: 'fileSize', order: 'desc' } },
+    { label: 'Menor tamaño', value: { field: 'fileSize', order: 'asc' } }
+  ];
+
   // Computed
   hasUploadFiles = computed(() => this.uploadFiles().length > 0);
   canUpload = computed(() => {
@@ -132,6 +161,23 @@ export class Documents implements OnInit, OnDestroy {
   hasProcessingDocuments = computed(() =>
     this.documents().some(d => d.status === 'PROCESSING' || d.status === 'UPLOADED')
   );
+
+  // Filtered documents (client-side search)
+  filteredDocuments = computed(() => {
+    const docs = this.documents();
+    const query = this.searchQuery().toLowerCase().trim();
+    if (!query) return docs;
+    return docs.filter(d => d.originalFilename.toLowerCase().includes(query));
+  });
+
+  // Selection computed
+  selectedCount = computed(() => this.selectedDocuments().size);
+  allSelected = computed(() => {
+    const docs = this.filteredDocuments();
+    const selected = this.selectedDocuments();
+    return docs.length > 0 && docs.every(d => selected.has(d.id));
+  });
+  hasSelection = computed(() => this.selectedDocuments().size > 0);
 
   ngOnInit(): void {
     this.loadDocuments();
@@ -149,7 +195,8 @@ export class Documents implements OnInit, OnDestroy {
 
     const params: DocumentListParams = {
       page: this.currentPage(),
-      size: this.pageSize()
+      size: this.pageSize(),
+      sort: `${this.sortField()},${this.sortOrder()}`
     };
 
     const status = this.selectedStatus();
@@ -176,15 +223,122 @@ export class Documents implements OnInit, OnDestroy {
     });
   }
 
-  onPageChange(event: { first: number; rows: number }): void {
-    this.currentPage.set(Math.floor(event.first / event.rows));
-    this.pageSize.set(event.rows);
+  onPageChange(event: { first?: number; rows?: number }): void {
+    const first = event.first ?? 0;
+    const rows = event.rows ?? this.pageSize();
+    this.currentPage.set(Math.floor(first / rows));
+    this.pageSize.set(rows);
     this.loadDocuments();
   }
 
   onFilterChange(): void {
     this.currentPage.set(0);
     this.loadDocuments();
+  }
+
+  // ============ SEARCH ============
+
+  onSearchChange(query: string): void {
+    this.searchQuery.set(query);
+  }
+
+  clearSearch(): void {
+    this.searchQuery.set('');
+  }
+
+  // ============ SORTING ============
+
+  onSortChange(option: SortOption): void {
+    this.sortField.set(option.value.field);
+    this.sortOrder.set(option.value.order);
+    this.currentPage.set(0);
+    this.loadDocuments();
+  }
+
+  // ============ SELECTION / BULK ACTIONS ============
+
+  toggleSelectionMode(): void {
+    this.isSelectionMode.update(v => !v);
+    if (!this.isSelectionMode()) {
+      this.selectedDocuments.set(new Set());
+    }
+  }
+
+  toggleDocumentSelection(docId: number): void {
+    this.selectedDocuments.update(current => {
+      const newSet = new Set(current);
+      if (newSet.has(docId)) {
+        newSet.delete(docId);
+      } else {
+        newSet.add(docId);
+      }
+      return newSet;
+    });
+  }
+
+  toggleSelectAll(): void {
+    if (this.allSelected()) {
+      this.selectedDocuments.set(new Set());
+    } else {
+      const allIds = this.filteredDocuments().map(d => d.id);
+      this.selectedDocuments.set(new Set(allIds));
+    }
+  }
+
+  confirmBulkDelete(): void {
+    const count = this.selectedCount();
+    this.confirmationService.confirm({
+      message: `¿Estás seguro de eliminar ${count} documento(s)?`,
+      header: 'Confirmar eliminación',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Eliminar',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => this.bulkDelete()
+    });
+  }
+
+  private bulkDelete(): void {
+    const ids = Array.from(this.selectedDocuments());
+    this.documentService.deleteBatch({ documentIds: ids }).subscribe({
+      next: (response) => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Eliminados',
+          detail: `${response.deleted} documento(s) eliminado(s)`
+        });
+        this.selectedDocuments.set(new Set());
+        this.isSelectionMode.set(false);
+        this.loadDocuments();
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudieron eliminar los documentos'
+        });
+      }
+    });
+  }
+
+  bulkDownload(): void {
+    const selectedDocs = this.filteredDocuments().filter(
+      d => this.selectedDocuments().has(d.id)
+    );
+    selectedDocs.forEach(doc => this.downloadDocument(doc));
+  }
+
+  // ============ QUICK PREVIEW ============
+
+  openQuickPreview(doc: Document, event: Event): void {
+    event.stopPropagation();
+    this.previewDocument.set(doc);
+    this.showQuickPreview.set(true);
+  }
+
+  closeQuickPreview(): void {
+    this.showQuickPreview.set(false);
+    this.previewDocument.set(null);
   }
 
   private startPolling(): void {
