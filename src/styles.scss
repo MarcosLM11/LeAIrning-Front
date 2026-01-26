@@ -48,3 +48,205 @@ a {
         color: var(--primary-hover);
     }
 }
+
+/* ==========================================================================
+   PrimeNG Global Overrides
+   ========================================================================== */
+
+/* Confirm Dialog */
+.p-confirmdialog {
+    background: var(--card-bg) !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow: var(--shadow-2xl) !important;
+    overflow: hidden;
+    min-width: 420px;
+    max-width: 90vw;
+
+    .p-dialog-header {
+        padding: var(--spacing-lg) var(--spacing-xl) !important;
+        background: var(--bg-main) !important;
+        border-bottom: 2px solid var(--border-color) !important;
+
+        .p-dialog-title {
+            font-size: var(--text-lg) !important;
+            font-weight: var(--font-bold) !important;
+            color: var(--text-main) !important;
+        }
+
+        .p-dialog-header-close {
+            width: 36px !important;
+            height: 36px !important;
+            border-radius: var(--radius-md) !important;
+            color: var(--text-secondary) !important;
+            transition: all 0.2s ease !important;
+
+            &:hover {
+                background: var(--bg-secondary) !important;
+                color: var(--text-main) !important;
+            }
+
+            &:focus {
+                box-shadow: none !important;
+            }
+        }
+    }
+
+    .p-dialog-content {
+        padding: var(--spacing-xl) !important;
+        background: var(--card-bg) !important;
+        color: var(--text-main) !important;
+
+        .p-confirmdialog-icon {
+            font-size: 2.5rem !important;
+            color: var(--warning-color) !important;
+            margin-right: var(--spacing-lg) !important;
+        }
+
+        .p-confirmdialog-message {
+            font-size: var(--text-base) !important;
+            color: var(--text-main) !important;
+            line-height: 1.6 !important;
+        }
+    }
+
+    .p-dialog-footer {
+        padding: var(--spacing-lg) var(--spacing-xl) !important;
+        background: var(--bg-main) !important;
+        border-top: 2px solid var(--border-color) !important;
+        display: flex !important;
+        justify-content: flex-end !important;
+        gap: var(--spacing-sm) !important;
+
+        button {
+            min-width: 110px !important;
+            padding: var(--spacing-sm) var(--spacing-lg) !important;
+            border-radius: var(--radius-md) !important;
+            font-weight: var(--font-semibold) !important;
+            font-size: var(--text-sm) !important;
+            transition: all 0.2s ease !important;
+
+            &:focus {
+                box-shadow: none !important;
+            }
+        }
+
+        .p-button-text,
+        .p-confirmdialog-reject-button {
+            background: transparent !important;
+            color: var(--text-secondary) !important;
+            border: 2px solid var(--border-color) !important;
+
+            &:hover {
+                background: var(--bg-secondary) !important;
+                border-color: var(--border-color-hover) !important;
+                color: var(--text-main) !important;
+            }
+        }
+
+        .p-button-danger,
+        .p-confirmdialog-accept-button {
+            background: var(--error-color) !important;
+            border: 2px solid var(--error-color) !important;
+            color: white !important;
+
+            &:hover {
+                background: #dc2626 !important;
+                border-color: #dc2626 !important;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4) !important;
+            }
+        }
+    }
+}
+
+/* Dialog Overlay/Mask */
+.p-dialog-mask {
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(4px);
+}
+
+/* Toast Notifications */
+.p-toast {
+    .p-toast-message {
+        border-radius: var(--radius-lg) !important;
+        box-shadow: var(--shadow-lg) !important;
+        border: none !important;
+        overflow: hidden;
+        margin-bottom: var(--spacing-sm) !important;
+
+        &.p-toast-message-success {
+            background: linear-gradient(135deg, #10b981, #34d399) !important;
+
+            .p-toast-message-icon,
+            .p-toast-icon-close {
+                color: white !important;
+            }
+        }
+
+        &.p-toast-message-error {
+            background: linear-gradient(135deg, #ef4444, #f87171) !important;
+
+            .p-toast-message-icon,
+            .p-toast-icon-close {
+                color: white !important;
+            }
+        }
+
+        &.p-toast-message-warn {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24) !important;
+
+            .p-toast-message-icon,
+            .p-toast-icon-close {
+                color: white !important;
+            }
+        }
+
+        &.p-toast-message-info {
+            background: linear-gradient(135deg, #3b82f6, #60a5fa) !important;
+
+            .p-toast-message-icon,
+            .p-toast-icon-close {
+                color: white !important;
+            }
+        }
+
+        .p-toast-message-content {
+            padding: var(--spacing-md) var(--spacing-lg) !important;
+            align-items: center !important;
+            gap: var(--spacing-md) !important;
+            color: white !important;
+        }
+
+        .p-toast-message-text {
+            margin-left: var(--spacing-sm) !important;
+        }
+
+        .p-toast-summary {
+            font-weight: var(--font-bold) !important;
+            font-size: var(--text-base) !important;
+            color: white !important;
+        }
+
+        .p-toast-detail {
+            font-size: var(--text-sm) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+            margin-top: var(--spacing-xs) !important;
+        }
+
+        .p-toast-icon-close {
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: var(--radius-md) !important;
+            transition: all 0.2s ease !important;
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.2) !important;
+            }
+
+            &:focus {
+                box-shadow: none !important;
+            }
+        }
+    }
+}

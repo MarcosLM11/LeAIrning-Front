@@ -121,8 +121,7 @@
       <i class="pi pi-search"></i>
       <input
         type="text"
-        pInputText
-        placeholder="Buscar documentos..."
+        placeholder="Buscar por nombre de archivo..."
         [ngModel]="searchQuery()"
         (ngModelChange)="onSearchChange($event)"
       />
@@ -135,6 +134,10 @@
 
     <!-- Filters -->
     <div class="filters-wrapper">
+      <span class="filter-label">
+        <i class="pi pi-filter"></i>
+        Filtros
+      </span>
       <p-select
         [options]="statusOptions"
         [(ngModel)]="selectedStatus"
@@ -157,6 +160,10 @@
 
     <!-- Sort -->
     <div class="sort-wrapper">
+      <span class="sort-label">
+        <i class="pi pi-sort-alt"></i>
+        Orden
+      </span>
       <p-select
         [options]="sortOptions"
         (onChange)="onSortChange($event.value)"
@@ -172,17 +179,18 @@
         [class.active]="isSelectionMode()"
         (click)="toggleSelectionMode()"
         pTooltip="Selección múltiple"
+        tooltipPosition="bottom"
       >
         <i class="pi pi-check-square"></i>
       </button>
 
       @if (isSelectionMode() && hasSelection()) {
         <div class="selection-actions">
-          <span class="selection-count">{{ selectedCount() }} seleccionado(s)</span>
-          <button class="btn-action" (click)="bulkDownload()" pTooltip="Descargar">
+          <span class="selection-count">{{ selectedCount() }}</span>
+          <button class="btn-action" (click)="bulkDownload()" pTooltip="Descargar seleccionados" tooltipPosition="bottom">
             <i class="pi pi-download"></i>
           </button>
-          <button class="btn-action danger" (click)="confirmBulkDelete()" pTooltip="Eliminar">
+          <button class="btn-action danger" (click)="confirmBulkDelete()" pTooltip="Eliminar seleccionados" tooltipPosition="bottom">
             <i class="pi pi-trash"></i>
           </button>
         </div>
@@ -199,8 +207,9 @@
           [checked]="allSelected()"
           (change)="toggleSelectAll()"
         />
-        <span>Seleccionar todos</span>
+        <span>Seleccionar todos los documentos</span>
       </label>
+      <span class="select-hint">Usa Ctrl+Click para seleccionar varios</span>
     </div>
   }
 
@@ -241,7 +250,7 @@
             class="document-card"
             [class.selected]="selectedDocuments().has(doc.id)"
             [style.animation-delay]="(i * 0.05) + 's'"
-            (click)="isSelectionMode() ? toggleDocumentSelection(doc.id) : viewDetails(doc)"
+            (click)="isSelectionMode() ? toggleDocumentSelection(doc.id) : openQuickPreview(doc, $event)"
           >
             <!-- Selection Checkbox -->
             @if (isSelectionMode()) {
@@ -283,10 +292,10 @@
             <div class="card-actions">
               <button
                 class="action-btn"
-                (click)="openQuickPreview(doc, $event)"
-                pTooltip="Vista rápida"
+                (click)="viewDetails(doc); $event.stopPropagation()"
+                pTooltip="Ver detalles"
               >
-                <i class="pi pi-eye"></i>
+                <i class="pi pi-info-circle"></i>
               </button>
               <button
                 class="action-btn"
