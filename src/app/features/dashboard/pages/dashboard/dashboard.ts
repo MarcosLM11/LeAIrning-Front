@@ -57,7 +57,7 @@ export class Dashboard implements OnInit {
     {
       label: 'Subir Documento',
       icon: 'pi-upload',
-      route: '/documents/upload',
+      route: '/documents',
       color: '#10b981'
     },
     {
@@ -79,7 +79,7 @@ export class Dashboard implements OnInit {
     {
       label: 'Subir Documento',
       icon: 'pi-upload',
-      route: '/documents/upload',
+      route: '/documents',
       color: '#10b981'
     },
     {

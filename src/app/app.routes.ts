@@ -30,15 +30,14 @@ export const routes: Routes = [
   },
   {
     path: 'documents',
-    loadComponent: () => import('./features/dashboard/pages/dashboard/dashboard')
-      .then(m => m.Dashboard),
+    loadComponent: () => import('./features/documents/pages/documents/documents')
+      .then(m => m.Documents),
     canActivate: [authGuard]
   },
   {
     path: 'documents/upload',
-    loadComponent: () => import('./features/documents/pages/upload/upload')
-      .then(m => m.Upload),
-    canActivate: [authGuard]
+    redirectTo: 'documents',
+    pathMatch: 'full'
   },
   {
     path: 'chat',
