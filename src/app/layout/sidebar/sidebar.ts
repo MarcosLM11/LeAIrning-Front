@@ -26,7 +26,7 @@ export class Sidebar {
     { label: 'Chat', icon: 'pi pi-comments', route: '/chat', badge: '2' },
     { label: 'Summaries', icon: 'pi pi-book', route: '/summaries' },
     { label: 'Podcasts', icon: 'pi pi-microphone', route: '/podcasts' },
-    { label: 'Quizzes', icon: 'pi pi-question-circle', route: '/quizzes' },
+    { label: 'Quizzes', icon: 'pi pi-question-circle', route: '/quizzes/generate' },
     { label: 'Search', icon: 'pi pi-search', route: '/search' },
   ];
 

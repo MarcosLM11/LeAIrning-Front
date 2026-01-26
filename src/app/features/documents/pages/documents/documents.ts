@@ -190,8 +190,10 @@ export class Documents implements OnInit, OnDestroy {
 
   // ============ DOCUMENTS LIST ============
 
-  loadDocuments(): void {
-    this.isLoading.set(true);
+  loadDocuments(showLoading = true): void {
+    if (showLoading) {
+      this.isLoading.set(true);
+    }
 
     const params: DocumentListParams = {
       page: this.currentPage(),
@@ -209,7 +211,9 @@ export class Documents implements OnInit, OnDestroy {
       next: (response) => {
         this.documents.set(response.content);
         this.totalRecords.set(response.totalElements);
-        this.isLoading.set(false);
+        if (showLoading) {
+          this.isLoading.set(false);
+        }
       },
       error: (error) => {
         console.error('Error loading documents:', error);
@@ -218,7 +222,9 @@ export class Documents implements OnInit, OnDestroy {
           summary: 'Error',
           detail: 'No se pudieron cargar los documentos'
         });
-        this.isLoading.set(false);
+        if (showLoading) {
+          this.isLoading.set(false);
+        }
       }
     });
   }
@@ -344,7 +350,7 @@ export class Documents implements OnInit, OnDestroy {
   private startPolling(): void {
     this.pollingInterval = setInterval(() => {
       if (this.hasProcessingDocuments()) {
-        this.loadDocuments();
+        this.loadDocuments(false); // No mostrar animación de carga en polling
       }
     }, 10000); // Poll every 10 seconds
   }
