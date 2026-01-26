@@ -35,9 +35,21 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'documents/upload',
+    loadComponent: () => import('./features/documents/pages/upload/upload')
+      .then(m => m.Upload),
+    canActivate: [authGuard]
+  },
+  {
     path: 'chat',
-    loadComponent: () => import('./features/dashboard/pages/dashboard/dashboard')
-      .then(m => m.Dashboard),
+    loadComponent: () => import('./features/chat/pages/chat/chat')
+      .then(m => m.Chat),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'quizzes/generate',
+    loadComponent: () => import('./features/quizzes/pages/generate/generate')
+      .then(m => m.Generate),
     canActivate: [authGuard]
   },
 

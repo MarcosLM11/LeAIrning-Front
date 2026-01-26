@@ -1,0 +1,147 @@
+<p-toast />
+
+<div class="upload-container">
+  <!-- Header -->
+  <header class="upload-header">
+    <button class="back-btn" (click)="goBack()">
+      <i class="pi pi-arrow-left"></i>
+      <span>Volver</span>
+    </button>
+    <div class="header-content">
+      <h1>Subir Documentos</h1>
+      <p>Arrastra tus archivos o haz clic para seleccionarlos</p>
+    </div>
+  </header>
+
+  <!-- Drop Zone -->
+  <div
+    class="drop-zone"
+    [class.drag-over]="isDragOver()"
+    [class.has-files]="hasFiles()"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+  >
+    <input
+      type="file"
+      #fileInput
+      multiple
+      accept=".pdf,.txt,.csv,.doc,.docx,.md"
+      (change)="onFileSelected($event)"
+      hidden
+    />
+
+    @if (!hasFiles()) {
+      <div class="drop-zone-content" (click)="fileInput.click()">
+        <div class="upload-icon">
+          <i class="pi pi-cloud-upload"></i>
+        </div>
+        <h3>Arrastra tus documentos aquí</h3>
+        <p>o haz clic para seleccionar archivos</p>
+        <div class="supported-formats">
+          <span class="format-badge">PDF</span>
+          <span class="format-badge">TXT</span>
+          <span class="format-badge">CSV</span>
+          <span class="format-badge">DOC</span>
+          <span class="format-badge">DOCX</span>
+          <span class="format-badge">MD</span>
+        </div>
+        <p class="size-limit">Tamaño máximo: 50MB por archivo</p>
+      </div>
+    } @else {
+      <div class="files-list">
+        <div class="files-header">
+          <h3>
+            <i class="pi pi-list"></i>
+            Archivos seleccionados ({{ files().length }})
+          </h3>
+          <div class="files-actions">
+            <button class="add-more-btn" (click)="fileInput.click()" [disabled]="isUploading()">
+              <i class="pi pi-plus"></i>
+              <span>Añadir más</span>
+            </button>
+            <button class="clear-btn" (click)="clearAll()" [disabled]="isUploading()">
+              <i class="pi pi-trash"></i>
+              <span>Limpiar</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="files-scroll">
+          @for (fileUpload of files(); track $index; let i = $index) {
+            <div class="file-item" [class]="getStatusClass(fileUpload.status)">
+              <div class="file-icon">
+                <i [class]="'pi ' + getFileIcon(fileUpload.file)"></i>
+              </div>
+              <div class="file-info">
+                <span class="file-name">{{ fileUpload.file.name }}</span>
+                <span class="file-size">{{ formatFileSize(fileUpload.file.size) }}</span>
+                @if (fileUpload.status === 'uploading') {
+                  <p-progressBar
+                    [value]="fileUpload.progress"
+                    [showValue]="false"
+                    styleClass="file-progress"
+                  />
+                }
+                @if (fileUpload.status === 'success' && fileUpload.document) {
+                  <span class="processing-status">
+                    {{ getProcessingStatusText(fileUpload.document.status) }}
+                  </span>
+                }
+                @if (fileUpload.status === 'error' && fileUpload.errorMessage) {
+                  <span class="error-message">{{ fileUpload.errorMessage }}</span>
+                }
+              </div>
+              <div class="file-status">
+                <i [class]="'pi ' + getStatusIcon(fileUpload.status)"></i>
+              </div>
+              @if (fileUpload.status === 'pending' || fileUpload.status === 'error') {
+                <button
+                  class="remove-btn"
+                  (click)="removeFile(i)"
+                  [disabled]="isUploading()"
+                >
+                  <i class="pi pi-times"></i>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Actions -->
+  @if (hasFiles()) {
+    <div class="upload-actions">
+      @if (isUploading()) {
+        <div class="upload-progress">
+          <p-progressBar [value]="uploadProgress()" />
+          <span>Subiendo... {{ uploadProgress() }}%</span>
+        </div>
+      } @else {
+        <p-button
+          label="Subir Documentos"
+          icon="pi pi-upload"
+          [disabled]="!canUpload()"
+          (onClick)="uploadFiles()"
+          styleClass="upload-btn"
+        />
+      }
+    </div>
+  }
+
+  <!-- Info Section -->
+  <div class="info-section">
+    <div class="info-card">
+      <i class="pi pi-info-circle"></i>
+      <div>
+        <h4>¿Qué pasa después de subir?</h4>
+        <p>
+          Tus documentos serán procesados automáticamente. Una vez listos,
+          podrás chatear con la IA sobre su contenido y generar quizzes.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,332 @@
+<p-toast />
+
+<div class="generate-container">
+  @if (!generatedQuiz()) {
+    <!-- Configuration View -->
+    <header class="generate-header">
+      <button class="back-btn" (click)="goBack()">
+        <i class="pi pi-arrow-left"></i>
+        <span>Volver</span>
+      </button>
+      <div class="header-content">
+        <h1>Generar Quiz</h1>
+        <p>Crea un quiz personalizado basado en tus documentos</p>
+      </div>
+    </header>
+
+    <div class="config-grid">
+      <!-- Document Selection -->
+      <section class="config-section documents-section">
+        <div class="section-header">
+          <i class="pi pi-folder"></i>
+          <h2>Seleccionar Documentos</h2>
+        </div>
+
+        @if (isLoadingDocs()) {
+          <div class="loading-docs">
+            @for (i of [1, 2, 3]; track i) {
+              <p-skeleton height="48px" styleClass="mb-2" />
+            }
+          </div>
+        } @else if (!hasDocuments()) {
+          <div class="no-documents">
+            <i class="pi pi-inbox"></i>
+            <p>No tienes documentos procesados</p>
+            <button class="upload-link" routerLink="/documents/upload">
+              Subir documentos
+            </button>
+          </div>
+        } @else {
+          <div class="documents-list">
+            <label class="select-all-option">
+              <input
+                type="checkbox"
+                [checked]="allSelected()"
+                (change)="toggleSelectAll()"
+              />
+              <span>Seleccionar todos ({{ completedDocuments().length }})</span>
+            </label>
+
+            <div class="documents-scroll">
+              @for (doc of completedDocuments(); track doc.id) {
+                <label class="document-option">
+                  <input
+                    type="checkbox"
+                    [checked]="isDocumentSelected(doc.id)"
+                    (change)="toggleDocument(doc.id)"
+                  />
+                  <i [class]="'pi ' + getDocumentIcon(doc)"></i>
+                  <span class="doc-name" [title]="doc.originalFilename">
+                    {{ doc.originalFilename }}
+                  </span>
+                </label>
+              }
+            </div>
+          </div>
+        }
+      </section>
+
+      <!-- Quiz Configuration -->
+      <section class="config-section settings-section">
+        <div class="section-header">
+          <i class="pi pi-cog"></i>
+          <h2>Configuración del Quiz</h2>
+        </div>
+
+        <div class="config-options">
+          <!-- Number of Questions -->
+          <div class="config-option">
+            <label>
+              <span class="option-label">Número de preguntas</span>
+              <span class="option-value">{{ numberOfQuestions() }}</span>
+            </label>
+            <p-slider
+              [ngModel]="numberOfQuestions()"
+              (ngModelChange)="numberOfQuestions.set($event)"
+              [min]="5"
+              [max]="30"
+              [step]="5"
+            />
+            <div class="slider-labels">
+              <span>5</span>
+              <span>30</span>
+            </div>
+          </div>
+
+          <!-- Difficulty -->
+          <div class="config-option">
+            <label class="option-label">Dificultad</label>
+            <div class="difficulty-options">
+              @for (option of difficultyOptions; track option.value) {
+                <button
+                  class="difficulty-btn"
+                  [class.selected]="selectedDifficulty() === option.value"
+                  (click)="selectedDifficulty.set(option.value)"
+                >
+                  {{ option.label }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Question Types -->
+          <div class="config-option">
+            <label class="option-label">Tipos de preguntas</label>
+            <div class="type-options">
+              @for (type of questionTypeOptions; track type.value) {
+                <button
+                  class="type-btn"
+                  [class.selected]="isTypeSelected(type.value)"
+                  (click)="toggleQuestionType(type.value)"
+                >
+                  <i [class]="'pi ' + type.icon"></i>
+                  <span>{{ type.label }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Generate Button -->
+        <div class="generate-action">
+          <p-button
+            label="Generar Quiz"
+            icon="pi pi-sparkles"
+            [loading]="isGenerating()"
+            [disabled]="!canGenerate()"
+            (onClick)="generateQuiz()"
+            styleClass="generate-btn"
+          />
+          @if (!canGenerate() && !isGenerating()) {
+            <p class="hint">
+              @if (selectedDocumentIds().length === 0) {
+                Selecciona al menos un documento
+              } @else if (selectedTypes().length === 0) {
+                Selecciona al menos un tipo de pregunta
+              }
+            </p>
+          }
+        </div>
+
+        <!-- Info Notice -->
+        <div class="info-notice">
+          <i class="pi pi-info-circle"></i>
+          <p>
+            <strong>Nota:</strong> Esta funcionalidad está en desarrollo.
+            Actualmente se generan preguntas de ejemplo. Pronto podrás
+            generar quizzes reales basados en el contenido de tus documentos.
+          </p>
+        </div>
+      </section>
+    </div>
+  } @else {
+    <!-- Quiz View -->
+    @if (!showResults()) {
+      <div class="quiz-view">
+        <header class="quiz-header">
+          <div class="quiz-info">
+            <h2>{{ generatedQuiz()!.title }}</h2>
+            <div class="quiz-progress">
+              <span>Pregunta {{ currentQuestionIndex() + 1 }} de {{ generatedQuiz()!.questions.length }}</span>
+              <div class="progress-bar">
+                <div
+                  class="progress-fill"
+                  [style.width.%]="((currentQuestionIndex() + 1) / generatedQuiz()!.questions.length) * 100"
+                ></div>
+              </div>
+            </div>
+          </div>
+          <button class="exit-btn" (click)="generateNewQuiz()">
+            <i class="pi pi-times"></i>
+            <span>Salir</span>
+          </button>
+        </header>
+
+        @if (currentQuestion(); as question) {
+          <div class="question-card">
+            <div class="question-type-badge">
+              @switch (question.type) {
+                @case ('MULTIPLE_CHOICE') {
+                  <i class="pi pi-list"></i>
+                  <span>Opción múltiple</span>
+                }
+                @case ('TRUE_FALSE') {
+                  <i class="pi pi-check-square"></i>
+                  <span>Verdadero/Falso</span>
+                }
+                @case ('SHORT_ANSWER') {
+                  <i class="pi pi-pencil"></i>
+                  <span>Respuesta corta</span>
+                }
+              }
+            </div>
+
+            <h3 class="question-text">{{ question.question }}</h3>
+
+            @if (question.type === 'MULTIPLE_CHOICE' || question.type === 'TRUE_FALSE') {
+              <div class="options-list">
+                @for (option of question.options; track option) {
+                  <button
+                    class="option-btn"
+                    [class.selected]="getSelectedAnswer(question.id) === option"
+                    (click)="selectAnswer(question.id, option)"
+                  >
+                    <span class="option-marker"></span>
+                    <span class="option-text">{{ option }}</span>
+                  </button>
+                }
+              </div>
+            } @else {
+              <div class="short-answer">
+                <input
+                  type="text"
+                  placeholder="Escribe tu respuesta..."
+                  [value]="getSelectedAnswer(question.id) || ''"
+                  (input)="selectAnswer(question.id, $any($event.target).value)"
+                />
+              </div>
+            }
+          </div>
+
+          <div class="quiz-actions">
+            <button
+              class="nav-btn prev"
+              [disabled]="currentQuestionIndex() === 0"
+              (click)="previousQuestion()"
+            >
+              <i class="pi pi-chevron-left"></i>
+              <span>Anterior</span>
+            </button>
+
+            @if (isLastQuestion()) {
+              <button
+                class="nav-btn finish"
+                [disabled]="!getSelectedAnswer(question.id)"
+                (click)="finishQuiz()"
+              >
+                <span>Finalizar</span>
+                <i class="pi pi-check"></i>
+              </button>
+            } @else {
+              <button
+                class="nav-btn next"
+                [disabled]="!getSelectedAnswer(question.id)"
+                (click)="nextQuestion()"
+              >
+                <span>Siguiente</span>
+                <i class="pi pi-chevron-right"></i>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Results View -->
+      <div class="results-view">
+        <div class="results-card">
+          <div class="results-header">
+            <div class="score-circle" [class.high]="quizScore().percentage >= 70" [class.low]="quizScore().percentage < 50">
+              <span class="score-value">{{ quizScore().percentage }}%</span>
+              <span class="score-label">Puntuación</span>
+            </div>
+            <div class="results-summary">
+              <h2>¡Quiz completado!</h2>
+              <p>Has acertado {{ quizScore().correct }} de {{ quizScore().total }} preguntas</p>
+            </div>
+          </div>
+
+          <div class="results-actions">
+            <button class="action-btn secondary" (click)="retryQuiz()">
+              <i class="pi pi-refresh"></i>
+              <span>Reintentar</span>
+            </button>
+            <button class="action-btn primary" (click)="generateNewQuiz()">
+              <i class="pi pi-plus"></i>
+              <span>Nuevo Quiz</span>
+            </button>
+          </div>
+
+          <!-- Question Review -->
+          <div class="questions-review">
+            <h3>Revisión de respuestas</h3>
+            @for (question of generatedQuiz()!.questions; track question.id; let i = $index) {
+              <div class="review-item" [class.correct]="userAnswers()[question.id] === question.correctAnswer" [class.incorrect]="userAnswers()[question.id] !== question.correctAnswer">
+                <div class="review-header">
+                  <span class="review-number">{{ i + 1 }}</span>
+                  <span class="review-status">
+                    @if (userAnswers()[question.id] === question.correctAnswer) {
+                      <i class="pi pi-check-circle"></i> Correcto
+                    } @else {
+                      <i class="pi pi-times-circle"></i> Incorrecto
+                    }
+                  </span>
+                </div>
+                <p class="review-question">{{ question.question }}</p>
+                <div class="review-answers">
+                  <p>
+                    <strong>Tu respuesta:</strong>
+                    <span [class.wrong]="userAnswers()[question.id] !== question.correctAnswer">
+                      {{ userAnswers()[question.id] || 'Sin respuesta' }}
+                    </span>
+                  </p>
+                  @if (userAnswers()[question.id] !== question.correctAnswer) {
+                    <p>
+                      <strong>Respuesta correcta:</strong>
+                      <span class="correct-answer">{{ question.correctAnswer }}</span>
+                    </p>
+                  }
+                </div>
+                @if (question.explanation) {
+                  <p class="review-explanation">
+                    <i class="pi pi-info-circle"></i>
+                    {{ question.explanation }}
+                  </p>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

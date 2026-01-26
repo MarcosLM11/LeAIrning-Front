@@ -1,5 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { provideZonelessChangeDetection } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
+import { provideAnimations } from '@angular/platform-browser/animations';
 import { Login } from './login';
 
 describe('Login', () => {
@@ -8,9 +11,14 @@ describe('Login', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Login]
-    })
-    .compileComponents();
+      imports: [Login],
+      providers: [
+        provideZonelessChangeDetection(),
+        provideHttpClient(),
+        provideRouter([]),
+        provideAnimations(),
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(Login);
     component = fixture.componentInstance;

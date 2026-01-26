@@ -1,10 +1,20 @@
 import { TestBed } from '@angular/core/testing';
+import { provideZonelessChangeDetection } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
+import { provideAnimations } from '@angular/platform-browser/animations';
 import { App } from './app';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
+      providers: [
+        provideZonelessChangeDetection(),
+        provideHttpClient(),
+        provideRouter([]),
+        provideAnimations(),
+      ],
     }).compileComponents();
   });
 
@@ -14,10 +24,10 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render title', async () => {
+  it('should have a router outlet', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, LeAIrning-front-app');
+    expect(compiled.querySelector('router-outlet')).toBeTruthy();
   });
 });

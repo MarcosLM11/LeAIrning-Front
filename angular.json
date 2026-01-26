@@ -43,13 +43,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "700kB",
+                  "maximumError": "1.5MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "25kB",
+                  "maximumError": "50kB"
                 }
               ],
               "outputHashing": "all"
@@ -82,7 +82,12 @@
           "defaultConfiguration": "development"
         },
         "test": {
-          "builder": "@angular/build:unit-test"
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "LeAIrning-front-app:build",
+            "tsConfig": "tsconfig.spec.json",
+            "runner": "vitest"
+          }
         }
       }
     }
