@@ -108,6 +108,16 @@ export class AuthService {
     );
   }
 
+  exchangeCodeFromOAuth(code: string): Observable<User> {
+    return this.exchangeCode(code).pipe(
+      switchMap(tokens => {
+        this.storeTokens(tokens);
+        return this.fetchCurrentUser(tokens.access_token);
+      }),
+      tap(user => this.setCurrentUser(user))
+    );
+  }
+
   private exchangeCode(code: string): Observable<TokenPair> {
     return this.http.get<TokenPair>(`${this.authUrl}/code/exchange`, {
       params: { code }

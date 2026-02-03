@@ -1,0 +1,27 @@
+<div class="exchange-container">
+  <div class="exchange-card">
+    <app-theme-toggle class="theme-toggle" />
+
+    @if (isProcessing()) {
+      <div class="exchange-content processing">
+        <div class="spinner">
+          <i class="pi pi-spin pi-spinner"></i>
+        </div>
+        <h2>Iniciando sesión...</h2>
+        <p>Por favor espera mientras completamos el proceso de autenticación</p>
+      </div>
+    } @else {
+      <div class="exchange-content error">
+        <div class="icon-wrapper error">
+          <i class="pi pi-times-circle"></i>
+        </div>
+        <h2>Error de autenticación</h2>
+        <p>{{ errorMessage() }}</p>
+        <a routerLink="/auth/login" class="login-link">
+          <i class="pi pi-arrow-left"></i>
+          Volver al inicio de sesión
+        </a>
+      </div>
+    }
+  </div>
+</div>
