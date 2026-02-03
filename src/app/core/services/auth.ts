@@ -53,6 +53,19 @@ export class AuthService {
     return this.http.post<void>(`${this.authUrl}/register`, data);
   }
 
+  verifyEmail(token: string): Observable<User> {
+    return this.http.get<AuthCodeResponse>(`${this.authUrl}/verify`, {
+      params: { token }
+    }).pipe(
+      switchMap(response => this.exchangeCode(response.auth_code)),
+      switchMap(tokens => {
+        this.storeTokens(tokens);
+        return this.fetchCurrentUser(tokens.access_token);
+      }),
+      tap(user => this.setCurrentUser(user))
+    );
+  }
+
   logout(): void {
     if (this.isBrowser) {
       localStorage.removeItem(this.TOKEN_KEY);

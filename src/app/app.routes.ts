@@ -20,6 +20,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/pages/register/register')
       .then(m => m.Register)
   },
+  {
+    path: 'auth/verify',
+    loadComponent: () => import('./features/auth/pages/verify/verify')
+      .then(m => m.Verify)
+  },
 
   // Rutas privadas (CON authGuard)
   {

@@ -1,0 +1,35 @@
+<div class="verify-container">
+  <div class="verify-card">
+    <app-theme-toggle class="theme-toggle" />
+
+    @if (isVerifying()) {
+      <div class="verify-content verifying">
+        <div class="spinner">
+          <i class="pi pi-spin pi-spinner"></i>
+        </div>
+        <h2>Verificando tu cuenta...</h2>
+        <p>Por favor espera mientras verificamos tu correo electrónico</p>
+      </div>
+    } @else if (isSuccess()) {
+      <div class="verify-content success">
+        <div class="icon-wrapper success">
+          <i class="pi pi-check-circle"></i>
+        </div>
+        <h2>Cuenta verificada</h2>
+        <p>Tu cuenta ha sido verificada correctamente. Redirigiendo al dashboard...</p>
+      </div>
+    } @else {
+      <div class="verify-content error">
+        <div class="icon-wrapper error">
+          <i class="pi pi-times-circle"></i>
+        </div>
+        <h2>Error de verificación</h2>
+        <p>{{ errorMessage() }}</p>
+        <a routerLink="/auth/login" class="login-link">
+          <i class="pi pi-arrow-left"></i>
+          Volver al inicio de sesión
+        </a>
+      </div>
+    }
+  </div>
+</div>
