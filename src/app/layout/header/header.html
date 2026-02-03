@@ -27,29 +27,87 @@
     <!-- Theme Toggle -->
     <app-theme-toggle />
 
-    <!-- Botón de notificaciones -->
-    <p-button
-      icon="pi pi-bell"
-      [rounded]="true"
-      [text]="true"
-      severity="secondary"
-      [badge]="'3'"
-      badgeSeverity="danger"
-    />
-
-    <!-- Avatar del usuario -->
+    <!-- Avatar del usuario con menú desplegable -->
     <div class="user-section">
       <span class="username">{{ currentUser()?.name || 'Usuario' }}</span>
-      <p-avatar 
-        [label]="getUserInitials()" 
-        styleClass="cursor-pointer" 
-        size="large" 
-        shape="circle"
-        [style]="{'background-color': '#667eea', 'color': '#ffffff'}"
-        (click)="menu.toggle($event)"
-      />
-      <p-menu #menu [model]="userMenuItems" [popup]="true" />
+      
+      <div class="user-menu-container">
+        <button 
+          class="user-avatar"
+          [class.menu-open]="isMenuOpen()"
+          (click)="toggleMenu()"
+          [title]="currentUser()?.name || 'Usuario'"
+        >
+          <span class="avatar-initials">{{ getUserInitials() }}</span>
+          <span class="avatar-status"></span>
+        </button>
+
+        <!-- Menú desplegable personalizado -->
+        @if (isMenuOpen()) {
+          <div class="user-dropdown" role="menu">
+            <!-- Header del menú con info del usuario -->
+            <div class="dropdown-header">
+              <div class="dropdown-avatar">
+                <span>{{ getUserInitials() }}</span>
+              </div>
+              <div class="dropdown-user-info">
+                <span class="dropdown-user-name">{{ currentUser()?.name || 'Usuario' }}</span>
+                <span class="dropdown-user-email">{{ currentUser()?.email || 'email@ejemplo.com' }}</span>
+              </div>
+            </div>
+
+            <div class="dropdown-divider"></div>
+
+            <!-- Opciones del menú -->
+            <div class="dropdown-menu-items">
+              <button class="dropdown-item" (click)="openProfileDialog()" role="menuitem">
+                <div class="item-icon">
+                  <i class="pi pi-pencil"></i>
+                </div>
+                <div class="item-content">
+                  <span class="item-label">Editar Perfil</span>
+                  <span class="item-description">Modifica tu información personal</span>
+                </div>
+              </button>
+
+              <button class="dropdown-item" (click)="goToProfile()" role="menuitem">
+                <div class="item-icon">
+                  <i class="pi pi-user"></i>
+                </div>
+                <div class="item-content">
+                  <span class="item-label">Mi Perfil</span>
+                  <span class="item-description">Ver tu perfil público</span>
+                </div>
+              </button>
+
+              <button class="dropdown-item" (click)="goToSettings()" role="menuitem">
+                <div class="item-icon">
+                  <i class="pi pi-cog"></i>
+                </div>
+                <div class="item-content">
+                  <span class="item-label">Configuración</span>
+                  <span class="item-description">Preferencias de la aplicación</span>
+                </div>
+              </button>
+            </div>
+
+            <div class="dropdown-divider"></div>
+
+            <!-- Logout -->
+            <div class="dropdown-footer">
+              <button class="dropdown-item logout-item" (click)="logout()" role="menuitem">
+                <div class="item-icon">
+                  <i class="pi pi-sign-out"></i>
+                </div>
+                <div class="item-content">
+                  <span class="item-label">Cerrar Sesión</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
     </div>
   </div>
-  
+
 </header>

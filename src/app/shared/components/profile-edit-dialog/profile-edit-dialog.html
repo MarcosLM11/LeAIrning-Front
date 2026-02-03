@@ -1,0 +1,334 @@
+<p-dialog
+  [visible]="visible()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="false"
+  [showHeader]="false"
+  appendTo="body"
+  [style]="{ width: '520px', maxWidth: '95vw' }"
+  [contentStyle]="{ padding: '0', borderRadius: '24px', overflow: 'hidden' }"
+  styleClass="profile-edit-dialog"
+  (onShow)="onDialogShow()"
+  (onHide)="onDialogHide()"
+>
+  <div class="dialog-container">
+    <!-- Header con gradiente -->
+    <div class="dialog-header">
+      <div class="header-background">
+        <div class="header-pattern"></div>
+      </div>
+      <div class="header-content">
+        <div class="header-text">
+          <h2>Editar Perfil</h2>
+          <p>Actualiza tu información personal</p>
+        </div>
+        <button 
+          type="button" 
+          class="close-btn" 
+          (click)="closeDialog()"
+          aria-label="Cerrar"
+        >
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+      
+      <!-- Avatar centrado sobre el header -->
+      <div class="avatar-wrapper">
+        <div class="avatar-container">
+          @if (profileImagePreview()) {
+            <img [src]="profileImagePreview()" alt="Foto de perfil" class="avatar-image" />
+          } @else {
+            <div class="avatar-placeholder">
+              <span>{{ getUserInitials() }}</span>
+            </div>
+          }
+          <label class="avatar-overlay" for="avatar-upload">
+            <i class="pi pi-camera"></i>
+            <span>Cambiar</span>
+          </label>
+          <input 
+            type="file" 
+            id="avatar-upload" 
+            accept="image/*"
+            class="hidden-input"
+            (change)="onFileInputChange($event)"
+          />
+          @if (profileImagePreview()) {
+            <button 
+              type="button" 
+              class="avatar-remove" 
+              (click)="removeImage()"
+              aria-label="Eliminar imagen"
+            >
+              <i class="pi pi-trash"></i>
+            </button>
+          }
+        </div>
+        <div class="avatar-info">
+          <span class="user-name">{{ currentUser()?.name || 'Usuario' }}</span>
+          <span class="user-email">{{ currentUser()?.email || '' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs de navegación -->
+    <div class="tabs-container">
+      <div class="tabs-wrapper">
+        <button
+          type="button"
+          class="tab-item"
+          [class.active]="activeSection() === 'profile'"
+          (click)="setActiveSection('profile')"
+        >
+          <i class="pi pi-user"></i>
+          <span>Información</span>
+        </button>
+        <button
+          type="button"
+          class="tab-item"
+          [class.active]="activeSection() === 'password'"
+          (click)="setActiveSection('password')"
+        >
+          <i class="pi pi-shield"></i>
+          <span>Seguridad</span>
+        </button>
+        <div 
+          class="tab-indicator" 
+          [class.right]="activeSection() === 'password'"
+        ></div>
+      </div>
+    </div>
+
+    <!-- Mensajes de feedback -->
+    @if (errorMessage()) {
+      <div class="feedback-message error">
+        <div class="feedback-icon">
+          <i class="pi pi-exclamation-triangle"></i>
+        </div>
+        <div class="feedback-content">
+          <span class="feedback-title">Error</span>
+          <span class="feedback-text">{{ errorMessage() }}</span>
+        </div>
+        <button type="button" class="feedback-close" (click)="errorMessage.set(null)">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+    }
+
+    @if (successMessage()) {
+      <div class="feedback-message success">
+        <div class="feedback-icon">
+          <i class="pi pi-check-circle"></i>
+        </div>
+        <div class="feedback-content">
+          <span class="feedback-title">Completado</span>
+          <span class="feedback-text">{{ successMessage() }}</span>
+        </div>
+      </div>
+    }
+
+    <!-- Contenido del formulario -->
+    <div class="form-container">
+      <!-- Sección de información personal -->
+      @if (activeSection() === 'profile') {
+        <div class="form-section animate-fade-in">
+          <div class="form-group">
+            <label for="profile-name" class="form-label">
+              <i class="pi pi-user"></i>
+              <span>Nombre completo</span>
+            </label>
+            <div class="input-wrapper">
+              <input
+                id="profile-name"
+                type="text"
+                class="form-input"
+                [ngModel]="formData().name"
+                (ngModelChange)="updateFormField('name', $event)"
+                placeholder="Ingresa tu nombre completo"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="profile-email" class="form-label">
+              <i class="pi pi-envelope"></i>
+              <span>Correo electrónico</span>
+            </label>
+            <div class="input-wrapper">
+              <input
+                id="profile-email"
+                type="email"
+                class="form-input"
+                [ngModel]="formData().email"
+                (ngModelChange)="updateFormField('email', $event)"
+                placeholder="tu@email.com"
+              />
+            </div>
+            <span class="form-hint">
+              <i class="pi pi-info-circle"></i>
+              Este será tu correo de contacto principal
+            </span>
+          </div>
+        </div>
+      }
+
+      <!-- Sección de seguridad/contraseña -->
+      @if (activeSection() === 'password') {
+        <div class="form-section animate-fade-in">
+          <div class="security-notice">
+            <div class="notice-icon">
+              <i class="pi pi-lock"></i>
+            </div>
+            <div class="notice-content">
+              <span class="notice-title">Cambiar contraseña</span>
+              <span class="notice-text">Asegúrate de usar una contraseña segura con al menos 8 caracteres</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="current-password" class="form-label">
+              <i class="pi pi-key"></i>
+              <span>Contraseña actual</span>
+            </label>
+            <div class="input-wrapper password-wrapper">
+              <input
+                id="current-password"
+                [type]="showCurrentPassword() ? 'text' : 'password'"
+                class="form-input"
+                [ngModel]="formData().currentPassword"
+                (ngModelChange)="updateFormField('currentPassword', $event)"
+                placeholder="Ingresa tu contraseña actual"
+              />
+              <button 
+                type="button" 
+                class="toggle-password"
+                (click)="showCurrentPassword.set(!showCurrentPassword())"
+              >
+                <i [class]="showCurrentPassword() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="password-divider">
+            <span>Nueva contraseña</span>
+          </div>
+
+          <div class="form-group">
+            <label for="new-password" class="form-label">
+              <i class="pi pi-lock"></i>
+              <span>Nueva contraseña</span>
+            </label>
+            <div class="input-wrapper password-wrapper">
+              <input
+                id="new-password"
+                [type]="showNewPassword() ? 'text' : 'password'"
+                class="form-input"
+                [ngModel]="formData().newPassword"
+                (ngModelChange)="updateFormField('newPassword', $event)"
+                placeholder="Mínimo 8 caracteres"
+              />
+              <button 
+                type="button" 
+                class="toggle-password"
+                (click)="showNewPassword.set(!showNewPassword())"
+              >
+                <i [class]="showNewPassword() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+              </button>
+            </div>
+            <!-- Indicador de fortaleza -->
+            @if (formData().newPassword) {
+              <div class="password-strength">
+                <div class="strength-bar">
+                  <div 
+                    class="strength-fill" 
+                    [class]="getPasswordStrength().class"
+                    [style.width]="getPasswordStrength().percentage + '%'"
+                  ></div>
+                </div>
+                <span class="strength-text" [class]="getPasswordStrength().class">
+                  {{ getPasswordStrength().label }}
+                </span>
+              </div>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="confirm-password" class="form-label">
+              <i class="pi pi-check-circle"></i>
+              <span>Confirmar contraseña</span>
+            </label>
+            <div class="input-wrapper password-wrapper">
+              <input
+                id="confirm-password"
+                [type]="showConfirmPassword() ? 'text' : 'password'"
+                class="form-input"
+                [class.match]="formData().confirmPassword && formData().newPassword === formData().confirmPassword"
+                [class.no-match]="formData().confirmPassword && formData().newPassword !== formData().confirmPassword"
+                [ngModel]="formData().confirmPassword"
+                (ngModelChange)="updateFormField('confirmPassword', $event)"
+                placeholder="Repite la nueva contraseña"
+              />
+              <button 
+                type="button" 
+                class="toggle-password"
+                (click)="showConfirmPassword.set(!showConfirmPassword())"
+              >
+                <i [class]="showConfirmPassword() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+              </button>
+            </div>
+            @if (formData().confirmPassword) {
+              <span class="form-hint" [class.success]="formData().newPassword === formData().confirmPassword" [class.error]="formData().newPassword !== formData().confirmPassword">
+                <i [class]="formData().newPassword === formData().confirmPassword ? 'pi pi-check' : 'pi pi-times'"></i>
+                {{ formData().newPassword === formData().confirmPassword ? 'Las contraseñas coinciden' : 'Las contraseñas no coinciden' }}
+              </span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Footer con acciones -->
+    <div class="dialog-footer">
+      <button 
+        type="button" 
+        class="btn btn-secondary"
+        (click)="closeDialog()"
+        [disabled]="isLoading()"
+      >
+        Cancelar
+      </button>
+      @if (activeSection() === 'profile') {
+        <button 
+          type="button" 
+          class="btn btn-primary"
+          (click)="saveProfile()"
+          [disabled]="isLoading()"
+        >
+          @if (isLoading()) {
+            <i class="pi pi-spinner pi-spin"></i>
+            <span>Guardando...</span>
+          } @else {
+            <i class="pi pi-check"></i>
+            <span>Guardar cambios</span>
+          }
+        </button>
+      } @else {
+        <button 
+          type="button" 
+          class="btn btn-primary"
+          (click)="changePassword()"
+          [disabled]="isLoading()"
+        >
+          @if (isLoading()) {
+            <i class="pi pi-spinner pi-spin"></i>
+            <span>Actualizando...</span>
+          } @else {
+            <i class="pi pi-shield"></i>
+            <span>Actualizar contraseña</span>
+          }
+        </button>
+      }
+    </div>
+  </div>
+</p-dialog>

@@ -208,24 +208,314 @@
       display: none;
     }
   }
+}
 
-  // PrimeNG Avatar override
-  :host ::ng-deep {
-    .p-avatar {
-      cursor: pointer;
-      transition: all var(--transition-base);
-      border: 2px solid transparent;
-      box-shadow: var(--shadow-sm);
+.user-menu-container {
+  position: relative;
+}
 
-      &:hover {
-        transform: scale(1.05);
-        border-color: var(--primary-color);
-        box-shadow: var(--shadow-primary);
-      }
+// ============================================================================
+// USER AVATAR - Estilo personalizado
+// ============================================================================
 
-      &:active {
-        transform: scale(0.98);
-      }
+.user-avatar {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-primary);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    opacity: 0;
+    transition: opacity var(--transition-base);
+    z-index: -1;
+  }
+
+  &:hover,
+  &.menu-open {
+    transform: scale(1.08);
+    box-shadow: var(--shadow-primary-lg);
+
+    &::before {
+      opacity: 0.3;
+    }
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: var(--shadow-primary-lg), 0 0 0 3px rgba(79, 70, 229, 0.2);
+  }
+
+  .avatar-initials {
+    font-size: var(--text-lg);
+    font-weight: var(--font-bold);
+    color: var(--text-inverse);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+  }
+
+  .avatar-status {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    background: var(--success-color);
+    border-radius: 50%;
+    border: 2px solid var(--card-bg);
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+    animation: pulse-status 2s var(--ease-in-out) infinite;
+  }
+}
+
+@keyframes pulse-status {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+  }
+}
+
+// ============================================================================
+// USER DROPDOWN MENU - Menú desplegable elegante
+// ============================================================================
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 320px;
+  background: var(--card-bg);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-color);
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  z-index: var(--z-dropdown, 1000);
+  overflow: hidden;
+  animation: dropdownSlideIn 0.2s var(--ease-out);
+
+  // Flecha del dropdown
+  &::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 16px;
+    width: 12px;
+    height: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    border-right: none;
+    transform: rotate(45deg);
+    z-index: 1;
+  }
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ============================================================================
+// DROPDOWN HEADER - Información del usuario
+// ============================================================================
+
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(99, 102, 241, 0.04) 100%);
+}
+
+.dropdown-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-primary);
+  flex-shrink: 0;
+
+  span {
+    font-size: var(--text-xl);
+    font-weight: var(--font-bold);
+    color: var(--text-inverse);
+    text-transform: uppercase;
+  }
+}
+
+.dropdown-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dropdown-user-name {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-user-email {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ============================================================================
+// DROPDOWN DIVIDER
+// ============================================================================
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 0;
+}
+
+// ============================================================================
+// DROPDOWN MENU ITEMS
+// ============================================================================
+
+.dropdown-menu-items {
+  padding: var(--spacing-sm);
+}
+
+.dropdown-footer {
+  padding: var(--spacing-sm);
+  background: var(--bg-main);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+  font-family: inherit;
+
+  &:hover {
+    background: var(--bg-main);
+
+    .item-icon {
+      background: var(--primary-color);
+      color: var(--text-inverse);
+      transform: scale(1.1);
+    }
+
+    .item-label {
+      color: var(--primary-color);
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:focus {
+    outline: none;
+    background: var(--bg-main);
+  }
+}
+
+.item-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+
+  i {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    transition: color var(--transition-fast);
+  }
+}
+
+.dropdown-item:hover .item-icon i {
+  color: var(--text-inverse);
+}
+
+.item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.item-label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-main);
+  transition: color var(--transition-fast);
+}
+
+.item-description {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ============================================================================
+// LOGOUT ITEM - Estilo especial
+// ============================================================================
+
+.logout-item {
+  &:hover {
+    background: rgba(239, 68, 68, 0.1);
+
+    .item-icon {
+      background: var(--error-color);
+      color: var(--text-inverse);
+    }
+
+    .item-label {
+      color: var(--error-color);
     }
   }
 }

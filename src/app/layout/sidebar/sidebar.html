@@ -32,11 +32,11 @@
     </ul>
   </nav>
 
-  <!-- Footer del Sidebar (opcional) -->
+  <!-- Footer del Sidebar -->
   <div class="sidebar-footer">
     <div class="user-info">
       <i class="pi pi-user menu-icon"></i>
-      <span class="menu-label">Marcos</span>
+      <span class="menu-label">{{ currentUser()?.name || 'Usuario' }}</span>
     </div>
   </div>
 </aside>

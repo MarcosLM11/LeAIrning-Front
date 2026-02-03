@@ -3,11 +3,12 @@ import { Router, RouterOutlet, NavigationEnd, ChildrenOutletContexts } from '@an
 import { filter } from 'rxjs';
 import { Header } from './layout/header/header';
 import { Sidebar } from './layout/sidebar/sidebar';
+import { ProfileEditDialog } from './shared/components/profile-edit-dialog/profile-edit-dialog';
 import { fadeScaleAnimation } from './shared/animations/route-animations';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Header, Sidebar],
+  imports: [RouterOutlet, Header, Sidebar, ProfileEditDialog],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   animations: [fadeScaleAnimation]

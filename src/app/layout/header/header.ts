@@ -1,75 +1,81 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, HostListener, ElementRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
-import { AvatarModule } from 'primeng/avatar';
 import { InputTextModule } from 'primeng/inputtext';
-import { MenuModule } from 'primeng/menu';
-import { MenuItem } from 'primeng/api';
 import { AuthService } from '../../core/services/auth';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle';
+import { DialogService } from '../../shared/services/dialog';
 
 @Component({
   selector: 'app-header',
   imports: [
     RouterLink,
     ButtonModule,
-    AvatarModule,
     InputTextModule,
-    MenuModule,
-    ThemeToggleComponent
+    ThemeToggleComponent,
   ],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })
 export class Header {
   private authService = inject(AuthService);
+  private elementRef = inject(ElementRef);
+  private dialogService = inject(DialogService);
 
   // Signal to manage the search input value
   searchTerm = signal<string>('');
 
+  // Signal para controlar el menú desplegable
+  isMenuOpen = signal(false);
+
   // Exponer el usuario actual del AuthService
   currentUser = this.authService.currentUser;
 
-  // Menú del avatar
-  userMenuItems: MenuItem[] = [
-    {
-      label: 'Mi Perfil',
-      icon: 'pi pi-user',
-      command: () => this.goToProfile()
-    },
-    {
-      label: 'Configuración',
-      icon: 'pi pi-cog',
-      command: () => this.goToSettings()
-    },
-    {
-      separator: true
-    },
-    {
-      label: 'Cerrar Sesión',
-      icon: 'pi pi-sign-out',
-      command: () => this.logout()
+  // Cerrar menú al hacer clic fuera
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.elementRef.nativeElement.contains(event.target)) {
+      this.isMenuOpen.set(false);
     }
-  ];
+  }
+
+  // Cerrar menú con Escape
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    this.isMenuOpen.set(false);
+  }
+
+  toggleMenu(): void {
+    this.isMenuOpen.update(v => !v);
+  }
+
+  closeMenu(): void {
+    this.isMenuOpen.set(false);
+  }
 
   // Method to handle search
   onSearch(): void {
     console.log('Buscando:', this.searchTerm());
-    // TODO: Implement search functionality
   }
 
   logout(): void {
+    this.closeMenu();
     this.authService.logout();
   }
 
+  openProfileDialog(): void {
+    this.closeMenu();
+    this.dialogService.openProfileDialog();
+  }
+
   goToProfile(): void {
+    this.closeMenu();
     console.log('Ir a perfil');
-    // TODO: Implementar navegación a perfil
   }
 
   goToSettings(): void {
+    this.closeMenu();
     console.log('Ir a configuración');
-    // TODO: Implementar navegación a configuración
   }
 
   // Helper para obtener iniciales del nombre
