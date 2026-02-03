@@ -23,20 +23,43 @@ export class AuthService {
   private readonly REFRESH_TOKEN_KEY = 'refresh_token';
   private readonly USER_KEY = 'current_user';
   private platformId = inject(PLATFORM_ID);
-  private isBrowser = isPlatformBrowser(this.platformId);
 
-  private currentUserSignal = signal<User | null>(this.getUserFromStorage());
-
-  isAuthenticated(): boolean {
-    return this.currentUserSignal() !== null;
+  private get isBrowser(): boolean {
+    return isPlatformBrowser(this.platformId);
   }
 
+  private currentUserSignal = signal<User | null>(null);
   currentUser = this.currentUserSignal.asReadonly();
 
   constructor(
     private http: HttpClient,
     private router: Router
-  ) {}
+  ) {
+    // Inicializar usuario desde storage solo en el browser
+    if (this.isBrowser) {
+      const user = this.getUserFromStorage();
+      if (user) {
+        this.currentUserSignal.set(user);
+      }
+    }
+  }
+
+  isAuthenticated(): boolean {
+    // Check signal first, then fallback to token existence
+    if (this.currentUserSignal() !== null) {
+      return true;
+    }
+    // If signal is null but token exists, try to restore user from storage
+    const token = this.getToken();
+    if (token && !this.isTokenExpired()) {
+      const user = this.getUserFromStorage();
+      if (user) {
+        this.currentUserSignal.set(user);
+        return true;
+      }
+    }
+    return false;
+  }
 
   login(credentials: LoginRequest): Observable<User> {
     return this.http.post<AuthCodeResponse>(`${this.authUrl}/login`, credentials).pipe(
@@ -126,7 +149,10 @@ export class AuthService {
 
   private fetchCurrentUser(accessToken: string): Observable<User> {
     const userId = this.extractUserIdFromToken(accessToken);
-    return this.http.get<UserResponse>(`${this.usersUrl}/${userId}`).pipe(
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${accessToken}`
+    });
+    return this.http.get<UserResponse>(`${this.usersUrl}/${userId}`, { headers }).pipe(
       map(response => ({
         id: response.id,
         name: response.name,

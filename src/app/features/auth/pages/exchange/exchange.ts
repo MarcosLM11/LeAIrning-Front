@@ -1,4 +1,5 @@
-import { Component, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, inject, OnInit, ChangeDetectionStrategy, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../../core/services/auth';
@@ -19,11 +20,17 @@ export class Exchange implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private platformId = inject(PLATFORM_ID);
 
   isProcessing = signal(true);
   errorMessage = signal<string | null>(null);
 
   ngOnInit(): void {
+    // Solo ejecutar en el browser, no en SSR
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     const code = this.route.snapshot.queryParamMap.get('code');
     if (!code) {
       this.isProcessing.set(false);
@@ -36,7 +43,7 @@ export class Exchange implements OnInit {
   private exchangeCode(code: string): void {
     this.authService.exchangeCodeFromOAuth(code).subscribe({
       next: () => {
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/dashboard'], { replaceUrl: true });
       },
       error: (err) => {
         this.isProcessing.set(false);

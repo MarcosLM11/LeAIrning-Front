@@ -91,7 +91,7 @@ export class Login {
   }
 
   loginWithGithub() {
-    console.log('Login with GitHub'); //TODO: Implement
+    // TODO: Implement GitHub OAuth
   }
 
   private triggerShakeAnimation() {

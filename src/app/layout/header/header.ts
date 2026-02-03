@@ -55,7 +55,7 @@ export class Header {
 
   // Method to handle search
   onSearch(): void {
-    console.log('Buscando:', this.searchTerm());
+    // TODO: Implement search functionality
   }
 
   logout(): void {
@@ -70,12 +70,12 @@ export class Header {
 
   goToProfile(): void {
     this.closeMenu();
-    console.log('Ir a perfil');
+    // TODO: Implement navigation to profile
   }
 
   goToSettings(): void {
     this.closeMenu();
-    console.log('Ir a configuración');
+    // TODO: Implement navigation to settings
   }
 
   // Helper para obtener iniciales del nombre

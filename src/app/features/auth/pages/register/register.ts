@@ -164,7 +164,7 @@ export class Register implements OnInit {
   }
 
   registerWithGithub() {
-    console.log('Register with GitHub');
+    // TODO: Implement GitHub OAuth
   }
 
   private triggerShakeAnimation() {
@@ -173,7 +173,7 @@ export class Register implements OnInit {
   }
 
   private triggerSuccessAnimation() {
-    console.log('Success!');
+    // TODO: Implement success animation
   }
 
   get nameControl() {
