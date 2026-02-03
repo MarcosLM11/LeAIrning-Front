@@ -39,7 +39,7 @@
 
     <!-- Avatar del usuario -->
     <div class="user-section">
-      <span class="username">{{ currentUser()?.username || 'Usuario' }}</span>
+      <span class="username">{{ currentUser()?.name || 'Usuario' }}</span>
       <p-avatar 
         [label]="getUserInitials()" 
         styleClass="cursor-pointer" 

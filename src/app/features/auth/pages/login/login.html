@@ -58,7 +58,7 @@
       </div>
 
       <div class="divider">
-        <span>O continúa con tu usuario</span>
+        <span>O continúa con tu correo</span>
       </div>
 
       @if (errorMessage()) {
@@ -69,32 +69,32 @@
       }
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <!-- Username -->
-        <div class="form-field" [class.has-success]="usernameControl?.valid && usernameControl?.touched">
-          <label for="username">
-            <i class="pi pi-user"></i>
-            Nombre de Usuario
+        <!-- Email -->
+        <div class="form-field" [class.has-success]="emailControl?.valid && emailControl?.touched">
+          <label for="email">
+            <i class="pi pi-envelope"></i>
+            Correo Electrónico
           </label>
-          <input 
-            id="username"
-            type="text"
+          <input
+            id="email"
+            type="email"
             pInputText
-            formControlName="username"
-            placeholder="tu_usuario"
+            formControlName="email"
+            placeholder="tu@email.com"
             class="w-full"
-            [class.error]="usernameControl?.invalid && usernameControl?.touched"
+            [class.error]="emailControl?.invalid && emailControl?.touched"
           />
-          @if (usernameControl?.valid && usernameControl?.touched) {
+          @if (emailControl?.valid && emailControl?.touched) {
             <i class="pi pi-check-circle success-icon"></i>
           }
-          @if (usernameControl?.invalid && usernameControl?.touched) {
+          @if (emailControl?.invalid && emailControl?.touched) {
             <small class="error-message">
               <i class="pi pi-times-circle"></i>
-              @if (usernameControl?.errors?.['required']) {
-                El nombre de usuario es obligatorio
+              @if (emailControl?.errors?.['required']) {
+                El correo es obligatorio
               }
-              @if (usernameControl?.errors?.['minlength']) {
-                Mínimo 3 caracteres
+              @if (emailControl?.errors?.['email']) {
+                Ingresa un correo válido
               }
             </small>
           }

@@ -76,6 +76,6 @@ export class Header {
   getUserInitials(): string {
     const user = this.currentUser();
     if (!user) return '?';
-    return user.username.charAt(0).toUpperCase();
+    return user.name.charAt(0).toUpperCase();
   }
 }

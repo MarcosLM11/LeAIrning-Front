@@ -83,10 +83,8 @@
                     styleClass="file-progress"
                   />
                 }
-                @if (fileUpload.status === 'success' && fileUpload.document) {
-                  <span class="processing-status">
-                    {{ getProcessingStatusText(fileUpload.document.status) }}
-                  </span>
+                @if (fileUpload.status === 'success') {
+                  <span class="processing-status">Subido correctamente</span>
                 }
                 @if (fileUpload.status === 'error' && fileUpload.errorMessage) {
                   <span class="error-message">{{ fileUpload.errorMessage }}</span>

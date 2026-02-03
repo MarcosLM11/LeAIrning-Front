@@ -9,8 +9,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const token = authService.getToken();
 
-  // Si no hay token o es una ruta de auth, no modificar la petición
-  if (!token || req.url.includes('/auth/')) {
+  // Si no hay token o es una ruta de auth/token, no modificar la petición
+  if (!token || req.url.includes('/auth/') || req.url.includes('/token/')) {
     return next(req);
   }
 

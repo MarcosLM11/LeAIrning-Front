@@ -44,29 +44,24 @@ export class Chat implements OnInit, AfterViewChecked {
   private messageService = inject(MessageService);
   private router = inject(Router);
 
-  // State
   documents = signal<Document[]>([]);
-  selectedDocumentIds = signal<number[]>([]);
+  selectedDocumentIds = signal<string[]>([]);
   currentConversation = signal<Conversation | null>(null);
   messageText = signal('');
   isLoadingDocs = signal(true);
   isSending = signal(false);
   showSidebar = signal(true);
 
-  // Computed
   conversations = this.chatService.conversations;
   messages = computed(() => this.currentConversation()?.messages ?? []);
   hasDocuments = computed(() => this.documents().length > 0);
-  completedDocuments = computed(() =>
-    this.documents().filter(d => d.status === 'COMPLETED')
-  );
   canSend = computed(() =>
     this.messageText().trim().length > 0 && !this.isSending()
   );
   allSelected = computed(() => {
-    const completed = this.completedDocuments();
+    const docs = this.documents();
     const selected = this.selectedDocumentIds();
-    return completed.length > 0 && completed.every(d => selected.includes(d.id));
+    return docs.length > 0 && docs.every(d => selected.includes(d.id));
   });
 
   private shouldScrollToBottom = false;
@@ -85,10 +80,8 @@ export class Chat implements OnInit, AfterViewChecked {
   private async loadDocuments(): Promise<void> {
     this.isLoadingDocs.set(true);
     try {
-      const response = await this.documentService.list({ status: 'COMPLETED', size: 100 }).toPromise();
+      const response = await this.documentService.list({ size: 100 }).toPromise();
       this.documents.set(response?.content ?? []);
-
-      // Auto-select all documents if none selected
       if (this.selectedDocumentIds().length === 0 && response?.content) {
         this.selectedDocumentIds.set(response.content.map(d => d.id));
       }
@@ -104,15 +97,15 @@ export class Chat implements OnInit, AfterViewChecked {
   }
 
   toggleSelectAll(): void {
-    const completed = this.completedDocuments();
+    const docs = this.documents();
     if (this.allSelected()) {
       this.selectedDocumentIds.set([]);
     } else {
-      this.selectedDocumentIds.set(completed.map(d => d.id));
+      this.selectedDocumentIds.set(docs.map(d => d.id));
     }
   }
 
-  toggleDocument(docId: number): void {
+  toggleDocument(docId: string): void {
     this.selectedDocumentIds.update(ids => {
       if (ids.includes(docId)) {
         return ids.filter(id => id !== docId);
@@ -121,7 +114,7 @@ export class Chat implements OnInit, AfterViewChecked {
     });
   }
 
-  isDocumentSelected(docId: number): boolean {
+  isDocumentSelected(docId: string): boolean {
     return this.selectedDocumentIds().includes(docId);
   }
 
@@ -134,7 +127,6 @@ export class Chat implements OnInit, AfterViewChecked {
       });
       return;
     }
-
     const conversation = this.chatService.createConversation(
       'Nueva conversación',
       this.selectedDocumentIds()
@@ -160,10 +152,7 @@ export class Chat implements OnInit, AfterViewChecked {
   async sendMessage(): Promise<void> {
     const text = this.messageText().trim();
     if (!text || this.isSending()) return;
-
     let conversation = this.currentConversation();
-
-    // Create new conversation if none exists
     if (!conversation) {
       if (this.selectedDocumentIds().length === 0) {
         this.messageService.add({
@@ -179,24 +168,19 @@ export class Chat implements OnInit, AfterViewChecked {
       );
       this.currentConversation.set(conversation);
     }
-
-    // Add user message
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: 'user',
       content: text,
       timestamp: new Date()
     };
-
     this.chatService.addMessage(conversation.id, userMessage);
     this.currentConversation.set(this.chatService.getConversation(conversation.id) ?? null);
     this.messageText.set('');
     this.shouldScrollToBottom = true;
     this.isSending.set(true);
-
     try {
       const response = await this.chatService.ask(text, conversation.id).toPromise();
-
       if (response) {
         const assistantMessage: ChatMessage = {
           id: crypto.randomUUID(),
@@ -204,7 +188,6 @@ export class Chat implements OnInit, AfterViewChecked {
           content: response.answer,
           timestamp: new Date(response.timestamp)
         };
-
         this.chatService.addMessage(conversation.id, assistantMessage);
         this.currentConversation.set(this.chatService.getConversation(conversation.id) ?? null);
         this.shouldScrollToBottom = true;
@@ -259,12 +242,9 @@ export class Chat implements OnInit, AfterViewChecked {
   }
 
   getDocumentIcon(doc: Document): string {
-    switch (doc.documentType) {
-      case 'PDF': return 'pi-file-pdf';
-      case 'DOC':
-      case 'DOCX': return 'pi-file-word';
-      case 'CSV': return 'pi-file-excel';
-      default: return 'pi-file';
-    }
+    if (doc.contentType.includes('pdf')) return 'pi-file-pdf';
+    if (doc.contentType.includes('word') || doc.contentType.includes('document')) return 'pi-file-word';
+    if (doc.contentType.includes('csv') || doc.contentType.includes('excel')) return 'pi-file-excel';
+    return 'pi-file';
   }
 }

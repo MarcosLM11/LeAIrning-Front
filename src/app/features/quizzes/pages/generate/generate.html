@@ -44,11 +44,11 @@
                 [checked]="allSelected()"
                 (change)="toggleSelectAll()"
               />
-              <span>Seleccionar todos ({{ completedDocuments().length }})</span>
+              <span>Seleccionar todos ({{ documents().length }})</span>
             </label>
 
             <div class="documents-scroll">
-              @for (doc of completedDocuments(); track doc.id) {
+              @for (doc of documents(); track doc.id) {
                 <label class="document-option">
                   <input
                     type="checkbox"
@@ -56,8 +56,8 @@
                     (change)="toggleDocument(doc.id)"
                   />
                   <i [class]="'pi ' + getDocumentIcon(doc)"></i>
-                  <span class="doc-name" [title]="doc.originalFilename">
-                    {{ doc.originalFilename }}
+                  <span class="doc-name" [title]="doc.fileName">
+                    {{ doc.fileName }}
                   </span>
                 </label>
               }

@@ -34,7 +34,7 @@ export class Login {
   errorMessage = signal<string | null>(null);
   showShakeAnimation = signal<boolean>(false);
   rememberMe = false;
-  
+
   // Particles for background animation
   particles = Array.from({ length: 20 }, (_, i) => ({
     x: Math.random() * 100,
@@ -43,21 +43,16 @@ export class Login {
   }));
 
   ngOnInit() {
-    // Si ya está logueado, redirigir al dashboard
     if (this.authService.isAuthenticated()) {
       this.router.navigateByUrl(this.returnUrl);
     }
-
-    // Obtener la URL de retorno de los query params
-    const navigation = this.router.getCurrentNavigation();
     this.returnUrl = this.router.routerState.snapshot.root.queryParams['returnUrl'] || '/dashboard';
-
     this.initializeForm();
   }
 
   private initializeForm() {
     this.loginForm = this.fb.group({
-      username: ['', [Validators.required, Validators.minLength(3)]],
+      email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
@@ -71,7 +66,7 @@ export class Login {
 
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
-
+    
     this.authService.login(this.loginForm.value).subscribe({
       next: () => {
         this.isSubmitting.set(false);
@@ -80,27 +75,23 @@ export class Login {
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        console.error('Error en login:', err);
         
         if (err.status === 401) {
-          this.errorMessage.set('Usuario o contraseña incorrectos');
+          this.errorMessage.set('Correo o contraseña incorrectos');
         } else {
           this.errorMessage.set('Error al iniciar sesión. Intenta nuevamente.');
         }
-        
         this.triggerShakeAnimation();
       }
     });
   }
 
   loginWithGoogle() {
-    // TODO: Implement Google OAuth
-    console.log('Login with Google');
+    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
   }
 
   loginWithGithub() {
-    // TODO: Implement GitHub OAuth
-    console.log('Login with GitHub');
+    console.log('Login with GitHub'); //TODO: Implement
   }
 
   private triggerShakeAnimation() {
@@ -108,8 +99,8 @@ export class Login {
     setTimeout(() => this.showShakeAnimation.set(false), 650);
   }
 
-  get usernameControl() {
-    return this.loginForm.get('username');
+  get emailControl() {
+    return this.loginForm.get('email');
   }
 
   get passwordControl() {

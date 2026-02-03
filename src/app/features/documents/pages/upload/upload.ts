@@ -12,7 +12,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { DocumentService } from '../../../../core/services/document';
-import { Document, ProcessingStatus } from '../../../../core/models/document.model';
+import { Document } from '../../../../core/models/document.model';
 
 interface FileUpload {
   file: File;
@@ -21,15 +21,6 @@ interface FileUpload {
   document?: Document;
   errorMessage?: string;
 }
-
-const ALLOWED_TYPES = [
-  'application/pdf',
-  'text/plain',
-  'text/csv',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'text/markdown'
-];
 
 const ALLOWED_EXTENSIONS = ['pdf', 'txt', 'csv', 'doc', 'docx', 'md'];
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
@@ -84,7 +75,6 @@ export class Upload {
     event.preventDefault();
     event.stopPropagation();
     this.isDragOver.set(false);
-
     const droppedFiles = event.dataTransfer?.files;
     if (droppedFiles) {
       this.addFiles(Array.from(droppedFiles));
@@ -101,7 +91,6 @@ export class Upload {
 
   private addFiles(newFiles: File[]): void {
     const validFiles: FileUpload[] = [];
-
     for (const file of newFiles) {
       const validation = this.validateFile(file);
       if (validation.valid) {
@@ -118,7 +107,6 @@ export class Upload {
         });
       }
     }
-
     if (validFiles.length > 0) {
       this.files.update(current => [...current, ...validFiles]);
     }
@@ -126,21 +114,18 @@ export class Upload {
 
   private validateFile(file: File): { valid: boolean; error?: string } {
     const extension = file.name.split('.').pop()?.toLowerCase();
-
     if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
       return {
         valid: false,
         error: `Tipo de archivo no permitido. Usa: ${ALLOWED_EXTENSIONS.join(', ')}`
       };
     }
-
     if (file.size > MAX_FILE_SIZE) {
       return {
         valid: false,
         error: 'El archivo excede el tamaño máximo de 50MB'
       };
     }
-
     return { valid: true };
   }
 
@@ -155,18 +140,12 @@ export class Upload {
   async uploadFiles(): Promise<void> {
     const pendingFiles = this.files().filter(f => f.status === 'pending');
     if (pendingFiles.length === 0) return;
-
     this.isUploading.set(true);
-
-    // Mark all pending as uploading
     this.files.update(current =>
       current.map(f => f.status === 'pending' ? { ...f, status: 'uploading' as const, progress: 10 } : f)
     );
-
     try {
       const filesToUpload = pendingFiles.map(f => f.file);
-
-      // Simular progreso mientras se sube
       const progressInterval = setInterval(() => {
         this.files.update(current =>
           current.map(f => {
@@ -177,38 +156,21 @@ export class Upload {
           })
         );
       }, 200);
-
-      const response = await this.documentService.upload(filesToUpload).toPromise();
-
+      await this.documentService.upload(filesToUpload).toPromise();
       clearInterval(progressInterval);
-
-      // Map response documents to uploaded files
       this.files.update(current =>
         current.map(f => {
           if (f.status === 'uploading') {
-            const uploadedDoc = response?.documents.find(
-              d => d.originalFilename === f.file.name
-            );
-            if (uploadedDoc) {
-              return {
-                ...f,
-                status: 'success' as const,
-                progress: 100,
-                document: uploadedDoc
-              };
-            }
             return { ...f, status: 'success' as const, progress: 100 };
           }
           return f;
         })
       );
-
       this.messageService.add({
         severity: 'success',
         summary: 'Subida completada',
-        detail: `${response?.documents.length} documento(s) subido(s) correctamente`
+        detail: `${pendingFiles.length} documento(s) subido(s) correctamente`
       });
-
     } catch (error) {
       this.files.update(current =>
         current.map(f => {
@@ -223,7 +185,6 @@ export class Upload {
           return f;
         })
       );
-
       this.messageService.add({
         severity: 'error',
         summary: 'Error de subida',
@@ -274,16 +235,6 @@ export class Upload {
       case 'uploading': return 'status-uploading';
       case 'success': return 'status-success';
       case 'error': return 'status-error';
-    }
-  }
-
-  getProcessingStatusText(status?: ProcessingStatus): string {
-    if (!status) return '';
-    switch (status) {
-      case 'UPLOADED': return 'Subido';
-      case 'PROCESSING': return 'Procesando...';
-      case 'COMPLETED': return 'Listo';
-      case 'FAILED': return 'Error';
     }
   }
 }

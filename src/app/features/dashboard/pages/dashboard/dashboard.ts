@@ -8,7 +8,7 @@ import { SkeletonActivityItemComponent } from '../../../../shared/components/ske
 import { AuthService } from '../../../../core/services/auth';
 import { DocumentService } from '../../../../core/services/document';
 import { ChatService } from '../../../../core/services/chat';
-import { DocumentStatistics, Document } from '../../../../core/models/document.model';
+import { Document } from '../../../../core/models/document.model';
 
 interface ActivityItem {
   id: string;
@@ -39,20 +39,15 @@ export class Dashboard implements OnInit {
   private chatService = inject(ChatService);
   private router = inject(Router);
 
-  // User info from AuthService
   currentUser = computed(() => {
     const user = this.authService.currentUser();
-    return { username: user?.username ?? 'Usuario' };
+    return { name: user?.name ?? 'Usuario' };
   });
 
-  // Loading states
   isLoadingActivity = signal(true);
-
-  // Statistics from backend
-  documentStats = signal<DocumentStatistics | null>(null);
   recentDocuments = signal<Document[]>([]);
+  totalDocuments = signal(0);
 
-  // Quick actions para el Hero Section
   quickActions: QuickAction[] = [
     {
       label: 'Subir Documento',
@@ -74,7 +69,6 @@ export class Dashboard implements OnInit {
     }
   ];
 
-  // FAB actions (similar pero para el menú flotante)
   fabActions: FabAction[] = [
     {
       label: 'Subir Documento',
@@ -90,31 +84,26 @@ export class Dashboard implements OnInit {
     }
   ];
 
-  // AI Suggestion based on actual data
   aiSuggestion = computed(() => {
-    const stats = this.documentStats();
+    const total = this.totalDocuments();
     const conversations = this.chatService.conversations();
-
-    if (!stats || stats.totalDocuments === 0) {
+    if (total === 0) {
       return 'Sube tu primer documento para comenzar a aprender con IA.';
     }
-
     if (conversations.length === 0) {
-      return `Tienes ${stats.totalDocuments} documento(s). ¡Inicia un chat para explorar su contenido!`;
+      return `Tienes ${total} documento(s). ¡Inicia un chat para explorar su contenido!`;
     }
-
-    return `Tienes ${stats.totalDocuments} documento(s) y ${conversations.length} conversación(es). ¡Sigue aprendiendo!`;
+    return `Tienes ${total} documento(s) y ${conversations.length} conversación(es). ¡Sigue aprendiendo!`;
   });
 
-  // Stats computed from real data
   stats = computed(() => {
-    const docStats = this.documentStats();
+    const total = this.totalDocuments();
     const conversations = this.chatService.conversations();
-
+    const storageUsed = this.recentDocuments().reduce((acc, doc) => acc + doc.size, 0);
     return [
       {
         title: 'Documentos',
-        value: docStats?.totalDocuments ?? 0,
+        value: total,
         icon: 'pi-file',
         color: '#10b981'
       },
@@ -126,31 +115,26 @@ export class Dashboard implements OnInit {
       },
       {
         title: 'Almacenamiento',
-        value: this.formatStorageSize(docStats?.storageUsed ?? 0),
+        value: this.formatStorageSize(storageUsed),
         icon: 'pi-database',
         color: '#8b5cf6'
       }
     ];
   });
 
-  // Recent activity computed from documents and conversations
   recentActivity = computed<ActivityItem[]>(() => {
     const activities: ActivityItem[] = [];
-
-    // Add recent documents
     for (const doc of this.recentDocuments()) {
       activities.push({
         id: `doc-${doc.id}`,
         type: 'document',
-        title: this.getDocumentStatusTitle(doc.status),
-        description: doc.originalFilename,
-        timestamp: new Date(doc.updatedAt),
-        icon: this.getDocumentIcon(doc.documentType),
-        color: this.getDocumentStatusColor(doc.status)
+        title: 'Documento subido',
+        description: doc.fileName,
+        timestamp: new Date(),
+        icon: this.getDocumentIcon(doc.contentType),
+        color: '#10b981'
       });
     }
-
-    // Add recent conversations
     for (const conv of this.chatService.conversations().slice(0, 3)) {
       activities.push({
         id: `chat-${conv.id}`,
@@ -162,8 +146,6 @@ export class Dashboard implements OnInit {
         color: '#3b82f6'
       });
     }
-
-    // Sort by timestamp (most recent first)
     return activities
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
       .slice(0, 5);
@@ -175,20 +157,11 @@ export class Dashboard implements OnInit {
 
   private async loadData(): Promise<void> {
     this.isLoadingActivity.set(true);
-
     try {
-      // Load statistics and recent documents in parallel
-      const [statsResult, docsResult] = await Promise.all([
-        this.documentService.getStatistics().toPromise().catch(() => null),
-        this.documentService.list({ size: 5, sort: 'updatedAt,desc' }).toPromise().catch(() => null)
-      ]);
-
-      if (statsResult) {
-        this.documentStats.set(statsResult);
-      }
-
+      const docsResult = await this.documentService.list({ size: 5, sort: 'createdTimestamp,desc' }).toPromise().catch(() => null);
       if (docsResult) {
         this.recentDocuments.set(docsResult.content);
+        this.totalDocuments.set(docsResult.totalElements);
       }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -205,34 +178,11 @@ export class Dashboard implements OnInit {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
-  private getDocumentStatusTitle(status: string): string {
-    switch (status) {
-      case 'UPLOADED': return 'Documento subido';
-      case 'PROCESSING': return 'Procesando documento';
-      case 'COMPLETED': return 'Documento listo';
-      case 'FAILED': return 'Error en documento';
-      default: return 'Documento';
-    }
-  }
-
-  private getDocumentStatusColor(status: string): string {
-    switch (status) {
-      case 'UPLOADED': return '#f59e0b';
-      case 'PROCESSING': return '#3b82f6';
-      case 'COMPLETED': return '#10b981';
-      case 'FAILED': return '#ef4444';
-      default: return '#6b7280';
-    }
-  }
-
-  private getDocumentIcon(type: string): string {
-    switch (type) {
-      case 'PDF': return 'pi-file-pdf';
-      case 'DOC':
-      case 'DOCX': return 'pi-file-word';
-      case 'CSV': return 'pi-file-excel';
-      default: return 'pi-file';
-    }
+  private getDocumentIcon(contentType: string): string {
+    if (contentType.includes('pdf')) return 'pi-file-pdf';
+    if (contentType.includes('word') || contentType.includes('document')) return 'pi-file-word';
+    if (contentType.includes('csv') || contentType.includes('excel')) return 'pi-file-excel';
+    return 'pi-file';
   }
 
   getRelativeTime(date: Date): string {
@@ -241,7 +191,6 @@ export class Dashboard implements OnInit {
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-
     if (diffMins < 60) {
       return `Hace ${diffMins} ${diffMins === 1 ? 'minuto' : 'minutos'}`;
     } else if (diffHours < 24) {

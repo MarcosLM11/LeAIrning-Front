@@ -16,13 +16,13 @@ export interface Quiz {
   title: string;
   description?: string;
   questions: QuizQuestion[];
-  documentIds: number[];
+  documentIds: string[];
   difficulty: DifficultyLevel;
   createdAt: Date;
 }
 
 export interface GenerateQuizRequest {
-  documentIds: number[];
+  documentIds: string[];
   numberOfQuestions: number;
   questionTypes: QuestionType[];
   difficulty: DifficultyLevel;

@@ -22,7 +22,7 @@
               <span>1</span>
             }
           </div>
-          <span class="step-label">Usuario</span>
+          <span class="step-label">Nombre</span>
         </div>
         <div class="progress-line" [class.active]="currentStep() >= 2"></div>
         <div class="step" [class.active]="currentStep() >= 2" [class.completed]="currentStep() > 2">
@@ -107,44 +107,44 @@
       }
 
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-        <!-- Step 1: Username -->
+        <!-- Step 1: Name -->
         @if (currentStep() === 1) {
           <div class="step-content" @slideIn>
-            <div class="form-field" [class.has-success]="usernameControl?.valid && usernameControl?.touched">
-              <label for="username">
+            <div class="form-field" [class.has-success]="nameControl?.valid && nameControl?.touched">
+              <label for="name">
                 <i class="pi pi-user"></i>
-                Nombre de usuario
+                Nombre completo
               </label>
-              <input 
-                id="username"
+              <input
+                id="name"
                 type="text"
                 pInputText
-                formControlName="username"
-                placeholder="johndoe"
+                formControlName="name"
+                placeholder="Juan García"
                 class="w-full"
-                [class.error]="usernameControl?.invalid && usernameControl?.touched"
+                [class.error]="nameControl?.invalid && nameControl?.touched"
                 (keydown.enter)="nextStep()"
               />
-              @if (usernameControl?.valid && usernameControl?.touched) {
+              @if (nameControl?.valid && nameControl?.touched) {
                 <i class="pi pi-check-circle success-icon"></i>
               }
-              @if (usernameControl?.invalid && usernameControl?.touched) {
+              @if (nameControl?.invalid && nameControl?.touched) {
                 <small class="error-message">
                   <i class="pi pi-times-circle"></i>
-                  @if (usernameControl?.errors?.['required']) {
-                    El nombre de usuario es obligatorio
+                  @if (nameControl?.errors?.['required']) {
+                    El nombre es obligatorio
                   }
-                  @if (usernameControl?.errors?.['minlength']) {
+                  @if (nameControl?.errors?.['minlength']) {
                     Mínimo 3 caracteres
                   }
-                  @if (usernameControl?.errors?.['maxlength']) {
-                    Máximo 20 caracteres
+                  @if (nameControl?.errors?.['maxlength']) {
+                    Máximo 50 caracteres
                   }
                 </small>
               }
             </div>
 
-            <button 
+            <button
               type="button"
               class="submit-btn"
               (click)="nextStep()"
@@ -237,7 +237,7 @@
                     La contraseña es obligatoria
                   }
                   @if (passwordControl?.errors?.['minlength']) {
-                    Mínimo 6 caracteres
+                    Mínimo 12 caracteres
                   }
                 </small>
               }

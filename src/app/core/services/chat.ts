@@ -1,14 +1,14 @@
 import { Injectable, inject, signal, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable } from 'rxjs';
 import { ChatRequest, ChatResponse, ChatMessage, Conversation } from '../models/chat.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
-  private apiUrl = 'http://localhost:8080/api/1.0/chat';
+  private apiUrl = 'http://localhost:8080/chat';
   private http = inject(HttpClient);
   private platformId = inject(PLATFORM_ID);
   private isBrowser = isPlatformBrowser(this.platformId);
@@ -22,13 +22,11 @@ export class ChatService {
     const headers = conversationId
       ? new HttpHeaders({ 'X-Conversation-Id': conversationId })
       : new HttpHeaders();
-
     const request: ChatRequest = { question };
-
     return this.http.post<ChatResponse>(`${this.apiUrl}/ask`, request, { headers });
   }
 
-  createConversation(title: string, documentIds: number[]): Conversation {
+  createConversation(title: string, documentIds: string[]): Conversation {
     const conversation: Conversation = {
       id: crypto.randomUUID(),
       title,
@@ -37,13 +35,11 @@ export class ChatService {
       createdAt: new Date(),
       updatedAt: new Date()
     };
-
     this.conversationsSignal.update(convs => {
       const updated = [conversation, ...convs];
       this.saveConversations(updated);
       return updated;
     });
-
     return conversation;
   }
 
@@ -83,11 +79,9 @@ export class ChatService {
 
   private loadConversations(): Conversation[] {
     if (!this.isBrowser) return [];
-
     try {
       const data = localStorage.getItem(this.CONVERSATIONS_KEY);
       if (!data) return [];
-
       const parsed = JSON.parse(data);
       return parsed.map((conv: Conversation) => ({
         ...conv,

@@ -132,32 +132,6 @@
       }
     </div>
 
-    <!-- Filters -->
-    <div class="filters-wrapper">
-      <span class="filter-label">
-        <i class="pi pi-filter"></i>
-        Filtros
-      </span>
-      <p-select
-        [options]="statusOptions"
-        [(ngModel)]="selectedStatus"
-        (ngModelChange)="onFilterChange()"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Estado"
-        [showClear]="true"
-      />
-      <p-select
-        [options]="typeOptions"
-        [(ngModel)]="selectedType"
-        (ngModelChange)="onFilterChange()"
-        optionLabel="label"
-        optionValue="value"
-        placeholder="Tipo"
-        [showClear]="true"
-      />
-    </div>
-
     <!-- Sort -->
     <div class="sort-wrapper">
       <span class="sort-label">
@@ -187,9 +161,6 @@
       @if (isSelectionMode() && hasSelection()) {
         <div class="selection-actions">
           <span class="selection-count">{{ selectedCount() }}</span>
-          <button class="btn-action" (click)="bulkDownload()" pTooltip="Descargar seleccionados" tooltipPosition="bottom">
-            <i class="pi pi-download"></i>
-          </button>
           <button class="btn-action danger" (click)="confirmBulkDelete()" pTooltip="Eliminar seleccionados" tooltipPosition="bottom">
             <i class="pi pi-trash"></i>
           </button>
@@ -265,27 +236,18 @@
             }
 
             <!-- Document Type Icon -->
-            <div class="card-icon" [class]="'type-' + doc.documentType.toLowerCase()">
-              <i [class]="'pi ' + getTypeIcon(doc.documentType)"></i>
+            <div class="card-icon">
+              <i [class]="'pi ' + getTypeIcon(doc.contentType)"></i>
             </div>
 
             <!-- Document Info -->
             <div class="card-content">
-              <h4 class="card-title" [pTooltip]="doc.originalFilename">
-                {{ doc.originalFilename }}
+              <h4 class="card-title" [pTooltip]="doc.fileName">
+                {{ doc.fileName }}
               </h4>
               <div class="card-meta">
-                <span class="meta-size">{{ formatFileSize(doc.fileSize) }}</span>
-                <span class="meta-date">{{ formatDate(doc.createdAt) }}</span>
+                <span class="meta-size">{{ formatFileSize(doc.size) }}</span>
               </div>
-            </div>
-
-            <!-- Status Tag -->
-            <div class="card-status">
-              <p-tag
-                [value]="getStatusLabel(doc.status)"
-                [severity]="getStatusSeverity(doc.status)"
-              />
             </div>
 
             <!-- Quick Actions -->
@@ -298,21 +260,12 @@
                 <i class="pi pi-info-circle"></i>
               </button>
               <button
-                class="action-btn"
-                (click)="downloadDocument(doc); $event.stopPropagation()"
-                pTooltip="Descargar"
+                class="action-btn primary"
+                (click)="goToChat(doc); $event.stopPropagation()"
+                pTooltip="Chatear"
               >
-                <i class="pi pi-download"></i>
+                <i class="pi pi-comments"></i>
               </button>
-              @if (isDocumentReady(doc)) {
-                <button
-                  class="action-btn primary"
-                  (click)="goToChat(doc); $event.stopPropagation()"
-                  pTooltip="Chatear"
-                >
-                  <i class="pi pi-comments"></i>
-                </button>
-              }
               <button
                 class="action-btn danger"
                 (click)="confirmDelete(doc); $event.stopPropagation()"
@@ -354,60 +307,37 @@
   >
     @if (selectedDocument(); as doc) {
       <div class="detail-content">
-        <div class="detail-icon" [class]="'type-' + doc.documentType.toLowerCase()">
-          <i [class]="'pi ' + getTypeIcon(doc.documentType)"></i>
+        <div class="detail-icon">
+          <i [class]="'pi ' + getTypeIcon(doc.contentType)"></i>
         </div>
 
         <div class="detail-info">
           <div class="detail-row">
             <label>Nombre:</label>
-            <span>{{ doc.originalFilename }}</span>
+            <span>{{ doc.fileName }}</span>
           </div>
           <div class="detail-row">
             <label>Tipo:</label>
-            <span>{{ doc.documentType }}</span>
+            <span>{{ doc.contentType }}</span>
           </div>
           <div class="detail-row">
             <label>Tamaño:</label>
-            <span>{{ formatFileSize(doc.fileSize) }}</span>
-          </div>
-          <div class="detail-row">
-            <label>Estado:</label>
-            <p-tag
-              [value]="getStatusLabel(doc.status)"
-              [severity]="getStatusSeverity(doc.status)"
-            />
-          </div>
-          <div class="detail-row">
-            <label>Subido:</label>
-            <span>{{ formatDate(doc.createdAt) }}</span>
-          </div>
-          <div class="detail-row">
-            <label>Actualizado:</label>
-            <span>{{ formatDate(doc.updatedAt) }}</span>
+            <span>{{ formatFileSize(doc.size) }}</span>
           </div>
         </div>
 
         <div class="detail-actions">
           <p-button
-            label="Descargar"
-            icon="pi pi-download"
-            severity="secondary"
-            (onClick)="downloadDocument(doc)"
+            label="Chatear"
+            icon="pi pi-comments"
+            (onClick)="goToChat(doc); closeDetailDialog()"
           />
-          @if (isDocumentReady(doc)) {
-            <p-button
-              label="Chatear"
-              icon="pi pi-comments"
-              (onClick)="goToChat(doc); closeDetailDialog()"
-            />
-            <p-button
-              label="Generar Quiz"
-              icon="pi pi-question-circle"
-              severity="help"
-              (onClick)="goToQuiz(doc); closeDetailDialog()"
-            />
-          }
+          <p-button
+            label="Generar Quiz"
+            icon="pi pi-question-circle"
+            severity="help"
+            (onClick)="goToQuiz(doc); closeDetailDialog()"
+          />
         </div>
       </div>
     }
@@ -426,46 +356,32 @@
 
       @if (previewDocument(); as doc) {
         <div class="preview-content">
-          <div class="preview-icon" [class]="'type-' + doc.documentType.toLowerCase()">
-            <i [class]="'pi ' + getTypeIcon(doc.documentType)"></i>
+          <div class="preview-icon">
+            <i [class]="'pi ' + getTypeIcon(doc.contentType)"></i>
           </div>
 
-          <h4 class="preview-title">{{ doc.originalFilename }}</h4>
+          <h4 class="preview-title">{{ doc.fileName }}</h4>
 
           <div class="preview-meta">
-            <p-tag
-              [value]="getStatusLabel(doc.status)"
-              [severity]="getStatusSeverity(doc.status)"
-            />
-            <span>{{ formatFileSize(doc.fileSize) }}</span>
+            <span>{{ formatFileSize(doc.size) }}</span>
           </div>
 
           <div class="preview-details">
             <div class="detail-item">
-              <i class="pi pi-calendar"></i>
-              <span>Subido {{ formatDate(doc.createdAt) }}</span>
-            </div>
-            <div class="detail-item">
               <i class="pi pi-file"></i>
-              <span>{{ doc.documentType }}</span>
+              <span>{{ doc.contentType }}</span>
             </div>
           </div>
 
           <div class="preview-actions">
-            <button class="preview-btn" (click)="downloadDocument(doc)">
-              <i class="pi pi-download"></i>
-              <span>Descargar</span>
-            </button>
             <button class="preview-btn" (click)="viewDetails(doc); closeQuickPreview()">
               <i class="pi pi-external-link"></i>
               <span>Ver Detalles</span>
             </button>
-            @if (isDocumentReady(doc)) {
-              <button class="preview-btn primary" (click)="goToChat(doc)">
-                <i class="pi pi-comments"></i>
-                <span>Chatear</span>
-              </button>
-            }
+            <button class="preview-btn primary" (click)="goToChat(doc)">
+              <i class="pi pi-comments"></i>
+              <span>Chatear</span>
+            </button>
           </div>
         </div>
       }

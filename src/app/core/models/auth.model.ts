@@ -1,23 +1,35 @@
-export interface AuthResponse {
-    accessToken: string;
-    refreshToken: string;
-    expiresIn: number;
-    tokenType: string;
+export interface AuthCodeResponse {
+  auth_code: string;
+}
+
+export interface TokenPair {
+  access_token: string;
+  refresh_token: string;
 }
 
 export interface LoginRequest {
-    username: string;
-    password: string;
+  email: string;
+  password: string;
 }
 
 export interface RegisterRequest {
-    username: string;
-    email: string;
-    password: string;
+  email: string;
+  name: string;
+  role: string;
+  password: string;
 }
 
 export interface User {
-    id: string;
-    username: string;
-    email: string;
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface UserResponse {
+  id: string;
+  email: string;
+  name: string;
+  pictureUrl: string | null;
+  role: string;
+  verified: boolean;
 }

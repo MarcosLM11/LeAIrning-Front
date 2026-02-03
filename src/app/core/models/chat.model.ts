@@ -19,7 +19,7 @@ export interface Conversation {
   id: string;
   title: string;
   messages: ChatMessage[];
-  documentIds: number[];
+  documentIds: string[];
   createdAt: Date;
   updatedAt: Date;
 }

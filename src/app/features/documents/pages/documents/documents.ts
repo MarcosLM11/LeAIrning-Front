@@ -4,7 +4,6 @@ import {
   computed,
   inject,
   OnInit,
-  OnDestroy,
   ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -22,12 +21,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PaginatorModule } from 'primeng/paginator';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { DocumentService } from '../../../../core/services/document';
-import {
-  Document,
-  ProcessingStatus,
-  DocumentType,
-  DocumentListParams
-} from '../../../../core/models/document.model';
+import { Document, DocumentListParams } from '../../../../core/models/document.model';
 
 interface FileUpload {
   file: File;
@@ -36,23 +30,13 @@ interface FileUpload {
   errorMessage?: string;
 }
 
-interface StatusOption {
-  label: string;
-  value: ProcessingStatus | null;
-}
-
-interface TypeOption {
-  label: string;
-  value: DocumentType | null;
-}
-
 interface SortOption {
   label: string;
-  value: { field: 'createdAt' | 'originalFilename' | 'fileSize'; order: 'asc' | 'desc' };
+  value: { field: string; order: 'asc' | 'desc' };
 }
 
 const ALLOWED_EXTENSIONS = ['pdf', 'txt', 'csv', 'doc', 'docx', 'md'];
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 @Component({
   selector: 'app-documents',
@@ -75,78 +59,39 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
   styleUrl: './documents.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Documents implements OnInit, OnDestroy {
+export class Documents implements OnInit {
   private documentService = inject(DocumentService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   private router = inject(Router);
 
-  // Upload state
   uploadFiles = signal<FileUpload[]>([]);
   isDragOver = signal(false);
   isUploading = signal(false);
-
-  // Documents list state
   documents = signal<Document[]>([]);
   isLoading = signal(false);
   totalRecords = signal(0);
   currentPage = signal(0);
   pageSize = signal(10);
-
-  // Filters
-  selectedStatus = signal<ProcessingStatus | null>(null);
-  selectedType = signal<DocumentType | null>(null);
-
-  // Detail dialog
   showDetailDialog = signal(false);
   selectedDocument = signal<Document | null>(null);
-
-  // Search
   searchQuery = signal('');
-
-  // Sorting
-  sortField = signal<'createdAt' | 'originalFilename' | 'fileSize'>('createdAt');
+  sortField = signal<string>('createdTimestamp');
   sortOrder = signal<'asc' | 'desc'>('desc');
-
-  // Selection for bulk actions
-  selectedDocuments = signal<Set<number>>(new Set());
+  selectedDocuments = signal<Set<string>>(new Set());
   isSelectionMode = signal(false);
-
-  // Quick preview
   showQuickPreview = signal(false);
   previewDocument = signal<Document | null>(null);
 
-  // Polling interval for processing documents
-  private pollingInterval: ReturnType<typeof setInterval> | null = null;
-
-  statusOptions: StatusOption[] = [
-    { label: 'Todos los estados', value: null },
-    { label: 'Subido', value: 'UPLOADED' },
-    { label: 'Procesando', value: 'PROCESSING' },
-    { label: 'Completado', value: 'COMPLETED' },
-    { label: 'Fallido', value: 'FAILED' }
-  ];
-
-  typeOptions: TypeOption[] = [
-    { label: 'Todos los tipos', value: null },
-    { label: 'PDF', value: 'PDF' },
-    { label: 'TXT', value: 'TXT' },
-    { label: 'CSV', value: 'CSV' },
-    { label: 'DOC', value: 'DOC' },
-    { label: 'DOCX', value: 'DOCX' },
-    { label: 'Markdown', value: 'MARKDOWN' }
-  ];
-
   sortOptions: SortOption[] = [
-    { label: 'Más recientes', value: { field: 'createdAt', order: 'desc' } },
-    { label: 'Más antiguos', value: { field: 'createdAt', order: 'asc' } },
-    { label: 'Nombre (A-Z)', value: { field: 'originalFilename', order: 'asc' } },
-    { label: 'Nombre (Z-A)', value: { field: 'originalFilename', order: 'desc' } },
-    { label: 'Mayor tamaño', value: { field: 'fileSize', order: 'desc' } },
-    { label: 'Menor tamaño', value: { field: 'fileSize', order: 'asc' } }
+    { label: 'Más recientes', value: { field: 'createdTimestamp', order: 'desc' } },
+    { label: 'Más antiguos', value: { field: 'createdTimestamp', order: 'asc' } },
+    { label: 'Nombre (A-Z)', value: { field: 'fileName', order: 'asc' } },
+    { label: 'Nombre (Z-A)', value: { field: 'fileName', order: 'desc' } },
+    { label: 'Mayor tamaño', value: { field: 'size', order: 'desc' } },
+    { label: 'Menor tamaño', value: { field: 'size', order: 'asc' } }
   ];
 
-  // Computed
   hasUploadFiles = computed(() => this.uploadFiles().length > 0);
   canUpload = computed(() => {
     const files = this.uploadFiles();
@@ -158,19 +103,14 @@ export class Documents implements OnInit, OnDestroy {
     const total = files.reduce((sum, f) => sum + f.progress, 0);
     return Math.round(total / files.length);
   });
-  hasProcessingDocuments = computed(() =>
-    this.documents().some(d => d.status === 'PROCESSING' || d.status === 'UPLOADED')
-  );
 
-  // Filtered documents (client-side search)
   filteredDocuments = computed(() => {
     const docs = this.documents();
     const query = this.searchQuery().toLowerCase().trim();
     if (!query) return docs;
-    return docs.filter(d => d.originalFilename.toLowerCase().includes(query));
+    return docs.filter(d => d.fileName.toLowerCase().includes(query));
   });
 
-  // Selection computed
   selectedCount = computed(() => this.selectedDocuments().size);
   allSelected = computed(() => {
     const docs = this.filteredDocuments();
@@ -181,32 +121,17 @@ export class Documents implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadDocuments();
-    this.startPolling();
   }
-
-  ngOnDestroy(): void {
-    this.stopPolling();
-  }
-
-  // ============ DOCUMENTS LIST ============
 
   loadDocuments(showLoading = true): void {
     if (showLoading) {
       this.isLoading.set(true);
     }
-
     const params: DocumentListParams = {
       page: this.currentPage(),
       size: this.pageSize(),
       sort: `${this.sortField()},${this.sortOrder()}`
     };
-
-    const status = this.selectedStatus();
-    const type = this.selectedType();
-
-    if (status) params.status = status;
-    if (type) params.type = type;
-
     this.documentService.list(params).subscribe({
       next: (response) => {
         this.documents.set(response.content);
@@ -237,13 +162,6 @@ export class Documents implements OnInit, OnDestroy {
     this.loadDocuments();
   }
 
-  onFilterChange(): void {
-    this.currentPage.set(0);
-    this.loadDocuments();
-  }
-
-  // ============ SEARCH ============
-
   onSearchChange(query: string): void {
     this.searchQuery.set(query);
   }
@@ -252,16 +170,12 @@ export class Documents implements OnInit, OnDestroy {
     this.searchQuery.set('');
   }
 
-  // ============ SORTING ============
-
   onSortChange(option: SortOption): void {
     this.sortField.set(option.value.field);
     this.sortOrder.set(option.value.order);
     this.currentPage.set(0);
     this.loadDocuments();
   }
-
-  // ============ SELECTION / BULK ACTIONS ============
 
   toggleSelectionMode(): void {
     this.isSelectionMode.update(v => !v);
@@ -270,7 +184,7 @@ export class Documents implements OnInit, OnDestroy {
     }
   }
 
-  toggleDocumentSelection(docId: number): void {
+  toggleDocumentSelection(docId: string): void {
     this.selectedDocuments.update(current => {
       const newSet = new Set(current);
       if (newSet.has(docId)) {
@@ -306,35 +220,33 @@ export class Documents implements OnInit, OnDestroy {
 
   private bulkDelete(): void {
     const ids = Array.from(this.selectedDocuments());
-    this.documentService.deleteBatch({ documentIds: ids }).subscribe({
-      next: (response) => {
+    let deleted = 0;
+    let failed = 0;
+    const deletePromises = ids.map(id =>
+      this.documentService.delete(id).toPromise()
+        .then(() => { deleted++; })
+        .catch(() => { failed++; })
+    );
+    Promise.all(deletePromises).then(() => {
+      if (deleted > 0) {
         this.messageService.add({
           severity: 'success',
           summary: 'Eliminados',
-          detail: `${response.deleted} documento(s) eliminado(s)`
-        });
-        this.selectedDocuments.set(new Set());
-        this.isSelectionMode.set(false);
-        this.loadDocuments();
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudieron eliminar los documentos'
+          detail: `${deleted} documento(s) eliminado(s)`
         });
       }
+      if (failed > 0) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Advertencia',
+          detail: `${failed} documento(s) no se pudieron eliminar`
+        });
+      }
+      this.selectedDocuments.set(new Set());
+      this.isSelectionMode.set(false);
+      this.loadDocuments();
     });
   }
-
-  bulkDownload(): void {
-    const selectedDocs = this.filteredDocuments().filter(
-      d => this.selectedDocuments().has(d.id)
-    );
-    selectedDocs.forEach(doc => this.downloadDocument(doc));
-  }
-
-  // ============ QUICK PREVIEW ============
 
   openQuickPreview(doc: Document, event: Event): void {
     event.stopPropagation();
@@ -346,23 +258,6 @@ export class Documents implements OnInit, OnDestroy {
     this.showQuickPreview.set(false);
     this.previewDocument.set(null);
   }
-
-  private startPolling(): void {
-    this.pollingInterval = setInterval(() => {
-      if (this.hasProcessingDocuments()) {
-        this.loadDocuments(false); // No mostrar animación de carga en polling
-      }
-    }, 10000); // Poll every 10 seconds
-  }
-
-  private stopPolling(): void {
-    if (this.pollingInterval) {
-      clearInterval(this.pollingInterval);
-      this.pollingInterval = null;
-    }
-  }
-
-  // ============ UPLOAD ============
 
   onDragOver(event: DragEvent): void {
     event.preventDefault();
@@ -380,7 +275,6 @@ export class Documents implements OnInit, OnDestroy {
     event.preventDefault();
     event.stopPropagation();
     this.isDragOver.set(false);
-
     const droppedFiles = event.dataTransfer?.files;
     if (droppedFiles) {
       this.addFiles(Array.from(droppedFiles));
@@ -397,7 +291,6 @@ export class Documents implements OnInit, OnDestroy {
 
   private addFiles(newFiles: File[]): void {
     const validFiles: FileUpload[] = [];
-
     for (const file of newFiles) {
       const validation = this.validateFile(file);
       if (validation.valid) {
@@ -414,7 +307,6 @@ export class Documents implements OnInit, OnDestroy {
         });
       }
     }
-
     if (validFiles.length > 0) {
       this.uploadFiles.update(current => [...current, ...validFiles]);
     }
@@ -422,18 +314,15 @@ export class Documents implements OnInit, OnDestroy {
 
   private validateFile(file: File): { valid: boolean; error?: string } {
     const extension = file.name.split('.').pop()?.toLowerCase();
-
     if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
       return {
         valid: false,
         error: `Tipo no permitido. Usa: ${ALLOWED_EXTENSIONS.join(', ')}`
       };
     }
-
     if (file.size > MAX_FILE_SIZE) {
       return { valid: false, error: 'Excede 50MB' };
     }
-
     return { valid: true };
   }
 
@@ -448,16 +337,13 @@ export class Documents implements OnInit, OnDestroy {
   async startUpload(): Promise<void> {
     const pendingFiles = this.uploadFiles().filter(f => f.status === 'pending');
     if (pendingFiles.length === 0) return;
-
     this.isUploading.set(true);
-
     this.uploadFiles.update(current =>
       current.map(f => f.status === 'pending'
         ? { ...f, status: 'uploading' as const, progress: 10 }
         : f
       )
     );
-
     const progressInterval = setInterval(() => {
       this.uploadFiles.update(current =>
         current.map(f => {
@@ -468,13 +354,10 @@ export class Documents implements OnInit, OnDestroy {
         })
       );
     }, 200);
-
     try {
       const filesToUpload = pendingFiles.map(f => f.file);
-      const response = await this.documentService.upload(filesToUpload).toPromise();
-
+      await this.documentService.upload(filesToUpload).toPromise();
       clearInterval(progressInterval);
-
       this.uploadFiles.update(current =>
         current.map(f => {
           if (f.status === 'uploading') {
@@ -483,22 +366,17 @@ export class Documents implements OnInit, OnDestroy {
           return f;
         })
       );
-
       this.messageService.add({
         severity: 'success',
         summary: 'Subida completada',
-        detail: `${response?.documents.length} documento(s) subido(s)`
+        detail: `${pendingFiles.length} documento(s) subido(s)`
       });
-
-      // Clear upload list and reload documents
       setTimeout(() => {
         this.uploadFiles.set([]);
         this.loadDocuments();
       }, 1500);
-
     } catch (error) {
       clearInterval(progressInterval);
-
       this.uploadFiles.update(current =>
         current.map(f => {
           if (f.status === 'uploading') {
@@ -507,7 +385,6 @@ export class Documents implements OnInit, OnDestroy {
           return f;
         })
       );
-
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
@@ -517,8 +394,6 @@ export class Documents implements OnInit, OnDestroy {
       this.isUploading.set(false);
     }
   }
-
-  // ============ DOCUMENT ACTIONS ============
 
   viewDetails(doc: Document): void {
     this.selectedDocument.set(doc);
@@ -530,29 +405,9 @@ export class Documents implements OnInit, OnDestroy {
     this.selectedDocument.set(null);
   }
 
-  downloadDocument(doc: Document): void {
-    this.documentService.download(doc.id).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = doc.originalFilename;
-        a.click();
-        window.URL.revokeObjectURL(url);
-      },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudo descargar el documento'
-        });
-      }
-    });
-  }
-
   confirmDelete(doc: Document): void {
     this.confirmationService.confirm({
-      message: `¿Estás seguro de eliminar "${doc.originalFilename}"?`,
+      message: `¿Estás seguro de eliminar "${doc.fileName}"?`,
       header: 'Confirmar eliminación',
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Eliminar',
@@ -568,7 +423,7 @@ export class Documents implements OnInit, OnDestroy {
         this.messageService.add({
           severity: 'success',
           summary: 'Eliminado',
-          detail: `"${doc.originalFilename}" eliminado correctamente`
+          detail: `"${doc.fileName}" eliminado correctamente`
         });
         this.loadDocuments();
       },
@@ -590,38 +445,11 @@ export class Documents implements OnInit, OnDestroy {
     this.router.navigate(['/quizzes/generate'], { queryParams: { documentId: doc.id } });
   }
 
-  // ============ HELPERS ============
-
-  getStatusSeverity(status: ProcessingStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
-    switch (status) {
-      case 'COMPLETED': return 'success';
-      case 'PROCESSING': return 'info';
-      case 'UPLOADED': return 'warn';
-      case 'FAILED': return 'danger';
-      default: return 'secondary';
-    }
-  }
-
-  getStatusLabel(status: ProcessingStatus): string {
-    switch (status) {
-      case 'COMPLETED': return 'Listo';
-      case 'PROCESSING': return 'Procesando';
-      case 'UPLOADED': return 'Subido';
-      case 'FAILED': return 'Error';
-      default: return status;
-    }
-  }
-
-  getTypeIcon(type: DocumentType): string {
-    switch (type) {
-      case 'PDF': return 'pi-file-pdf';
-      case 'DOC':
-      case 'DOCX': return 'pi-file-word';
-      case 'TXT':
-      case 'MARKDOWN': return 'pi-file';
-      case 'CSV': return 'pi-file-excel';
-      default: return 'pi-file';
-    }
+  getTypeIcon(contentType: string): string {
+    if (contentType.includes('pdf')) return 'pi-file-pdf';
+    if (contentType.includes('word') || contentType.includes('document')) return 'pi-file-word';
+    if (contentType.includes('csv') || contentType.includes('excel')) return 'pi-file-excel';
+    return 'pi-file';
   }
 
   formatFileSize(bytes: number): string {
@@ -630,17 +458,6 @@ export class Documents implements OnInit, OnDestroy {
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  }
-
-  formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   }
 
   getUploadFileIcon(file: File): string {
@@ -652,9 +469,5 @@ export class Documents implements OnInit, OnDestroy {
       case 'csv': return 'pi-file-excel';
       default: return 'pi-file';
     }
-  }
-
-  isDocumentReady(doc: Document): boolean {
-    return doc.status === 'COMPLETED';
   }
 }

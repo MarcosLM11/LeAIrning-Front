@@ -21,7 +21,6 @@ import { DocumentService } from '../../../../core/services/document';
 import { Document } from '../../../../core/models/document.model';
 import {
   Quiz,
-  QuizQuestion,
   GenerateQuizRequest,
   QuestionType,
   DifficultyLevel
@@ -55,9 +54,8 @@ export class Generate implements OnInit {
   private messageService = inject(MessageService);
   private router = inject(Router);
 
-  // State
   documents = signal<Document[]>([]);
-  selectedDocumentIds = signal<number[]>([]);
+  selectedDocumentIds = signal<string[]>([]);
   numberOfQuestions = signal(10);
   selectedDifficulty = signal<DifficultyLevel>('MEDIUM');
   selectedTypes = signal<QuestionType[]>(['MULTIPLE_CHOICE']);
@@ -68,7 +66,6 @@ export class Generate implements OnInit {
   userAnswers = signal<Record<string, string>>({});
   showResults = signal(false);
 
-  // Options
   difficultyOptions: DifficultyOption[] = [
     { label: 'Fácil', value: 'EASY' },
     { label: 'Medio', value: 'MEDIUM' },
@@ -81,20 +78,16 @@ export class Generate implements OnInit {
     { label: 'Respuesta corta', value: 'SHORT_ANSWER' as QuestionType, icon: 'pi-pencil' }
   ];
 
-  // Computed
-  completedDocuments = computed(() =>
-    this.documents().filter(d => d.status === 'COMPLETED')
-  );
-  hasDocuments = computed(() => this.completedDocuments().length > 0);
+  hasDocuments = computed(() => this.documents().length > 0);
   canGenerate = computed(() =>
     this.selectedDocumentIds().length > 0 &&
     this.selectedTypes().length > 0 &&
     !this.isGenerating()
   );
   allSelected = computed(() => {
-    const completed = this.completedDocuments();
+    const docs = this.documents();
     const selected = this.selectedDocumentIds();
-    return completed.length > 0 && completed.every(d => selected.includes(d.id));
+    return docs.length > 0 && docs.every(d => selected.includes(d.id));
   });
   currentQuestion = computed(() => {
     const quiz = this.generatedQuiz();
@@ -110,14 +103,12 @@ export class Generate implements OnInit {
     const quiz = this.generatedQuiz();
     const answers = this.userAnswers();
     if (!quiz) return { correct: 0, total: 0, percentage: 0 };
-
     let correct = 0;
     for (const question of quiz.questions) {
       if (answers[question.id] === question.correctAnswer) {
         correct++;
       }
     }
-
     return {
       correct,
       total: quiz.questions.length,
@@ -132,7 +123,7 @@ export class Generate implements OnInit {
   private async loadDocuments(): Promise<void> {
     this.isLoadingDocs.set(true);
     try {
-      const response = await this.documentService.list({ status: 'COMPLETED', size: 100 }).toPromise();
+      const response = await this.documentService.list({ size: 100 }).toPromise();
       this.documents.set(response?.content ?? []);
     } catch (error) {
       this.messageService.add({
@@ -146,15 +137,15 @@ export class Generate implements OnInit {
   }
 
   toggleSelectAll(): void {
-    const completed = this.completedDocuments();
+    const docs = this.documents();
     if (this.allSelected()) {
       this.selectedDocumentIds.set([]);
     } else {
-      this.selectedDocumentIds.set(completed.map(d => d.id));
+      this.selectedDocumentIds.set(docs.map(d => d.id));
     }
   }
 
-  toggleDocument(docId: number): void {
+  toggleDocument(docId: string): void {
     this.selectedDocumentIds.update(ids => {
       if (ids.includes(docId)) {
         return ids.filter(id => id !== docId);
@@ -163,14 +154,13 @@ export class Generate implements OnInit {
     });
   }
 
-  isDocumentSelected(docId: number): boolean {
+  isDocumentSelected(docId: string): boolean {
     return this.selectedDocumentIds().includes(docId);
   }
 
   toggleQuestionType(type: QuestionType): void {
     this.selectedTypes.update(types => {
       if (types.includes(type)) {
-        // Don't allow empty selection
         if (types.length === 1) return types;
         return types.filter(t => t !== type);
       }
@@ -184,9 +174,7 @@ export class Generate implements OnInit {
 
   async generateQuiz(): Promise<void> {
     if (!this.canGenerate()) return;
-
     this.isGenerating.set(true);
-
     try {
       const request: GenerateQuizRequest = {
         documentIds: this.selectedDocumentIds(),
@@ -194,16 +182,13 @@ export class Generate implements OnInit {
         questionTypes: this.selectedTypes(),
         difficulty: this.selectedDifficulty()
       };
-
       const quiz = await this.quizService.generate(request).toPromise();
-
       if (quiz) {
         this.generatedQuiz.set(quiz);
         this.quizService.saveQuiz(quiz);
         this.currentQuestionIndex.set(0);
         this.userAnswers.set({});
         this.showResults.set(false);
-
         this.messageService.add({
           severity: 'success',
           summary: 'Quiz generado',
@@ -235,7 +220,6 @@ export class Generate implements OnInit {
   nextQuestion(): void {
     const quiz = this.generatedQuiz();
     if (!quiz) return;
-
     if (this.currentQuestionIndex() < quiz.questions.length - 1) {
       this.currentQuestionIndex.update(i => i + 1);
     }
@@ -267,19 +251,15 @@ export class Generate implements OnInit {
   }
 
   getDocumentIcon(doc: Document): string {
-    switch (doc.documentType) {
-      case 'PDF': return 'pi-file-pdf';
-      case 'DOC':
-      case 'DOCX': return 'pi-file-word';
-      case 'CSV': return 'pi-file-excel';
-      default: return 'pi-file';
-    }
+    if (doc.contentType.includes('pdf')) return 'pi-file-pdf';
+    if (doc.contentType.includes('word') || doc.contentType.includes('document')) return 'pi-file-word';
+    if (doc.contentType.includes('csv') || doc.contentType.includes('excel')) return 'pi-file-excel';
+    return 'pi-file';
   }
 
   isAnswerCorrect(questionId: string, answer: string): boolean {
     const quiz = this.generatedQuiz();
     if (!quiz || !this.showResults()) return false;
-
     const question = quiz.questions.find(q => q.id === questionId);
     return question?.correctAnswer === answer;
   }
@@ -288,7 +268,6 @@ export class Generate implements OnInit {
     const quiz = this.generatedQuiz();
     const userAnswer = this.userAnswers()[questionId];
     if (!quiz || !this.showResults() || userAnswer !== answer) return false;
-
     const question = quiz.questions.find(q => q.id === questionId);
     return question?.correctAnswer !== answer;
   }

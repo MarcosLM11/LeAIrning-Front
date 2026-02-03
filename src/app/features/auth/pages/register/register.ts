@@ -54,25 +54,23 @@ export class Register implements OnInit {
   readonly TOTAL_STEPS = 3;
 
   ngOnInit() {
-    // Si ya está logueado, redirigir al dashboard
     if (this.authService.isAuthenticated()) {
       this.router.navigate(['/dashboard']);
     }
-
     this.initializeForm();
   }
 
   private initializeForm() {
     this.registerForm = this.fb.group({
-      username: ['', [
-        Validators.required, 
+      name: ['', [
+        Validators.required,
         Validators.minLength(3),
-        Validators.maxLength(20)
+        Validators.maxLength(50)
       ]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [
-        Validators.required, 
-        Validators.minLength(6),
+        Validators.required,
+        Validators.minLength(12),
         Validators.maxLength(50)
       ]],
       confirmPassword: ['', [Validators.required]]
@@ -83,7 +81,6 @@ export class Register implements OnInit {
 
   nextStep() {
     if (this.currentStep() < this.TOTAL_STEPS) {
-      // Validate current step
       if (this.isCurrentStepValid()) {
         this.currentStep.set(this.currentStep() + 1);
       } else {
@@ -102,7 +99,7 @@ export class Register implements OnInit {
   isCurrentStepValid(): boolean {
     switch (this.currentStep()) {
       case 1:
-        return this.usernameControl?.valid || false;
+        return this.nameControl?.valid || false;
       case 2:
         return this.emailControl?.valid || false;
       case 3:
@@ -115,7 +112,7 @@ export class Register implements OnInit {
   markCurrentStepAsTouched() {
     switch (this.currentStep()) {
       case 1:
-        this.usernameControl?.markAsTouched();
+        this.nameControl?.markAsTouched();
         break;
       case 2:
         this.emailControl?.markAsTouched();
@@ -133,27 +130,21 @@ export class Register implements OnInit {
       this.triggerShakeAnimation();
       return;
     }
-
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
-
-    // Preparar datos para el backend (sin confirmPassword)
-    const { username, email, password } = this.registerForm.value;
-
-    this.authService.register({ username, email, password }).subscribe({
+    
+    const { name, email, password } = this.registerForm.value;
+    
+    this.authService.register({ email, name, role: 'USER', password }).subscribe({
       next: () => {
         this.isSubmitting.set(false);
-        // Trigger success animation (confetti)
         this.triggerSuccessAnimation();
-        
-        // Redirect to login after animation
         setTimeout(() => {
           this.router.navigate(['/auth/login']);
         }, 1500);
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        console.error('Error en registro:', err);
         
         if (err.status === 409) {
           this.errorMessage.set('El email ya está registrado');
@@ -169,12 +160,10 @@ export class Register implements OnInit {
   }
 
   registerWithGoogle() {
-    // TODO: Implement Google OAuth
-    console.log('Register with Google');
+    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
   }
 
   registerWithGithub() {
-    // TODO: Implement GitHub OAuth
     console.log('Register with GitHub');
   }
 
@@ -184,13 +173,11 @@ export class Register implements OnInit {
   }
 
   private triggerSuccessAnimation() {
-    // TODO: Trigger confetti animation
-    console.log('Success! 🎉');
+    console.log('Success!');
   }
 
-  // Getters para acceder a los controles
-  get usernameControl() {
-    return this.registerForm.get('username');
+  get nameControl() {
+    return this.registerForm.get('name');
   }
 
   get emailControl() {

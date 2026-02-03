@@ -1,21 +1,10 @@
-export type DocumentType = 'PDF' | 'TXT' | 'CSV' | 'DOC' | 'DOCX' | 'MARKDOWN';
-
-export type ProcessingStatus = 'UPLOADED' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
-
 export interface Document {
-  id: number;
-  originalFilename: string;
+  id: string;
+  userId: string;
+  fileName: string;
   contentType: string;
-  fileSize: number;
-  documentType: DocumentType;
-  status: ProcessingStatus;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface UploadDocumentResponse {
-  documents: Document[];
-  message: string;
+  size: number;
+  storagePath: string;
 }
 
 export interface DocumentPage {
@@ -28,23 +17,7 @@ export interface DocumentPage {
   totalPages: number;
 }
 
-export interface DocumentStatistics {
-  totalDocuments: number;
-  storageUsed: number;
-}
-
-export interface BatchDeleteRequest {
-  documentIds: number[];
-}
-
-export interface BatchDeleteResponse {
-  deleted: number;
-  failed: number;
-}
-
 export interface DocumentListParams {
-  status?: ProcessingStatus;
-  type?: DocumentType;
   page?: number;
   size?: number;
   sort?: string;
