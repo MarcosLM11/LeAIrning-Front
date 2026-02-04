@@ -20,23 +20,31 @@ import { TooltipModule } from 'primeng/tooltip';
 import { InputTextModule } from 'primeng/inputtext';
 import { PaginatorModule } from 'primeng/paginator';
 import { MessageService, ConfirmationService } from 'primeng/api';
+import { firstValueFrom } from 'rxjs';
 import { DocumentService } from '../../../../core/services/document';
 import { Document, DocumentListParams } from '../../../../core/models/document.model';
-
-interface FileUpload {
-  file: File;
-  progress: number;
-  status: 'pending' | 'uploading' | 'success' | 'error';
-  errorMessage?: string;
-}
+import {
+  validateFile,
+  formatFileSize,
+  getDocumentIcon,
+  getFileIcon
+} from '../../../../shared/utils/file.utils';
+import { FileUpload } from '../../../../shared/models/file-upload.model';
+import { ToastService } from '../../../../shared/services/toast.service';
 
 interface SortOption {
   label: string;
   value: { field: string; order: 'asc' | 'desc' };
 }
 
-const ALLOWED_EXTENSIONS = ['pdf', 'txt', 'csv', 'doc', 'docx', 'md'];
-const MAX_FILE_SIZE = 50 * 1024 * 1024;
+const SORT_OPTIONS: SortOption[] = [
+  { label: 'Más recientes', value: { field: 'createdTimestamp', order: 'desc' } },
+  { label: 'Más antiguos', value: { field: 'createdTimestamp', order: 'asc' } },
+  { label: 'Nombre (A-Z)', value: { field: 'fileName', order: 'asc' } },
+  { label: 'Nombre (Z-A)', value: { field: 'fileName', order: 'desc' } },
+  { label: 'Mayor tamaño', value: { field: 'size', order: 'desc' } },
+  { label: 'Menor tamaño', value: { field: 'size', order: 'asc' } }
+];
 
 @Component({
   selector: 'app-documents',
@@ -61,99 +69,95 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024;
 })
 export class Documents implements OnInit {
   private documentService = inject(DocumentService);
-  private messageService = inject(MessageService);
+  private toast = inject(ToastService);
   private confirmationService = inject(ConfirmationService);
   private router = inject(Router);
 
-  uploadFiles = signal<FileUpload[]>([]);
-  isDragOver = signal(false);
-  isUploading = signal(false);
+  // Document list state
   documents = signal<Document[]>([]);
   isLoading = signal(false);
   totalRecords = signal(0);
   currentPage = signal(0);
   pageSize = signal(10);
-  showDetailDialog = signal(false);
-  selectedDocument = signal<Document | null>(null);
   searchQuery = signal('');
-  sortField = signal<string>('createdTimestamp');
+  sortField = signal('createdTimestamp');
   sortOrder = signal<'asc' | 'desc'>('desc');
+
+  // Selection state
   selectedDocuments = signal<Set<string>>(new Set());
   isSelectionMode = signal(false);
+
+  // Dialog state
+  showDetailDialog = signal(false);
+  selectedDocument = signal<Document | null>(null);
   showQuickPreview = signal(false);
   previewDocument = signal<Document | null>(null);
 
-  sortOptions: SortOption[] = [
-    { label: 'Más recientes', value: { field: 'createdTimestamp', order: 'desc' } },
-    { label: 'Más antiguos', value: { field: 'createdTimestamp', order: 'asc' } },
-    { label: 'Nombre (A-Z)', value: { field: 'fileName', order: 'asc' } },
-    { label: 'Nombre (Z-A)', value: { field: 'fileName', order: 'desc' } },
-    { label: 'Mayor tamaño', value: { field: 'size', order: 'desc' } },
-    { label: 'Menor tamaño', value: { field: 'size', order: 'asc' } }
-  ];
+  // Upload state
+  uploadFiles = signal<FileUpload[]>([]);
+  isDragOver = signal(false);
+  isUploading = signal(false);
 
+  // Constants
+  readonly sortOptions = SORT_OPTIONS;
+
+  // Computed: Upload
   hasUploadFiles = computed(() => this.uploadFiles().length > 0);
-  canUpload = computed(() => {
-    const files = this.uploadFiles();
-    return files.length > 0 && files.some(f => f.status === 'pending');
-  });
+  canUpload = computed(() => this.uploadFiles().some(f => f.status === 'pending'));
   uploadProgress = computed(() => {
     const files = this.uploadFiles();
     if (files.length === 0) return 0;
-    const total = files.reduce((sum, f) => sum + f.progress, 0);
-    return Math.round(total / files.length);
+    return Math.round(files.reduce((sum, f) => sum + f.progress, 0) / files.length);
   });
 
+  // Computed: Documents
   filteredDocuments = computed(() => {
-    const docs = this.documents();
     const query = this.searchQuery().toLowerCase().trim();
-    if (!query) return docs;
-    return docs.filter(d => d.fileName.toLowerCase().includes(query));
+    if (!query) return this.documents();
+    return this.documents().filter(d => d.fileName.toLowerCase().includes(query));
   });
 
+  // Computed: Selection
   selectedCount = computed(() => this.selectedDocuments().size);
+  hasSelection = computed(() => this.selectedDocuments().size > 0);
   allSelected = computed(() => {
     const docs = this.filteredDocuments();
     const selected = this.selectedDocuments();
     return docs.length > 0 && docs.every(d => selected.has(d.id));
   });
-  hasSelection = computed(() => this.selectedDocuments().size > 0);
+
+  // Re-export utils for template
+  formatFileSize = formatFileSize;
+  getTypeIcon = getDocumentIcon;
+  getUploadFileIcon = (file: File) => getFileIcon(file.name);
 
   ngOnInit(): void {
     this.loadDocuments();
   }
 
   loadDocuments(showLoading = true): void {
-    if (showLoading) {
-      this.isLoading.set(true);
-    }
+    if (showLoading) this.isLoading.set(true);
+
     const params: DocumentListParams = {
       page: this.currentPage(),
       size: this.pageSize(),
       sort: `${this.sortField()},${this.sortOrder()}`
     };
+
     this.documentService.list(params).subscribe({
       next: (response) => {
         this.documents.set(response.content);
         this.totalRecords.set(response.totalElements);
-        if (showLoading) {
-          this.isLoading.set(false);
-        }
+        if (showLoading) this.isLoading.set(false);
       },
-      error: (error) => {
-        console.error('Error loading documents:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudieron cargar los documentos'
-        });
-        if (showLoading) {
-          this.isLoading.set(false);
-        }
+      error: () => {
+        this.toast.error('No se pudieron cargar los documentos');
+        if (showLoading) this.isLoading.set(false);
       }
     });
   }
 
+  // Pagination
   onPageChange(event: { first?: number; rows?: number }): void {
     const first = event.first ?? 0;
     const rows = event.rows ?? this.pageSize();
@@ -162,6 +166,7 @@ export class Documents implements OnInit {
     this.loadDocuments();
   }
 
+  // Search
   onSearchChange(query: string): void {
     this.searchQuery.set(query);
   }
@@ -170,6 +175,7 @@ export class Documents implements OnInit {
     this.searchQuery.set('');
   }
 
+  // Sort
   onSortChange(option: SortOption): void {
     this.sortField.set(option.value.field);
     this.sortOrder.set(option.value.order);
@@ -177,21 +183,16 @@ export class Documents implements OnInit {
     this.loadDocuments();
   }
 
+  // Selection
   toggleSelectionMode(): void {
     this.isSelectionMode.update(v => !v);
-    if (!this.isSelectionMode()) {
-      this.selectedDocuments.set(new Set());
-    }
+    if (!this.isSelectionMode()) this.selectedDocuments.set(new Set());
   }
 
   toggleDocumentSelection(docId: string): void {
     this.selectedDocuments.update(current => {
       const newSet = new Set(current);
-      if (newSet.has(docId)) {
-        newSet.delete(docId);
-      } else {
-        newSet.add(docId);
-      }
+      newSet.has(docId) ? newSet.delete(docId) : newSet.add(docId);
       return newSet;
     });
   }
@@ -200,15 +201,14 @@ export class Documents implements OnInit {
     if (this.allSelected()) {
       this.selectedDocuments.set(new Set());
     } else {
-      const allIds = this.filteredDocuments().map(d => d.id);
-      this.selectedDocuments.set(new Set(allIds));
+      this.selectedDocuments.set(new Set(this.filteredDocuments().map(d => d.id)));
     }
   }
 
+  // Bulk delete
   confirmBulkDelete(): void {
-    const count = this.selectedCount();
     this.confirmationService.confirm({
-      message: `¿Estás seguro de eliminar ${count} documento(s)?`,
+      message: `¿Estás seguro de eliminar ${this.selectedCount()} documento(s)?`,
       header: 'Confirmar eliminación',
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Eliminar',
@@ -218,36 +218,24 @@ export class Documents implements OnInit {
     });
   }
 
-  private bulkDelete(): void {
+  private async bulkDelete(): Promise<void> {
     const ids = Array.from(this.selectedDocuments());
-    let deleted = 0;
-    let failed = 0;
-    const deletePromises = ids.map(id =>
-      this.documentService.delete(id).toPromise()
-        .then(() => { deleted++; })
-        .catch(() => { failed++; })
+    const results = await Promise.allSettled(
+      ids.map(id => firstValueFrom(this.documentService.delete(id)))
     );
-    Promise.all(deletePromises).then(() => {
-      if (deleted > 0) {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Eliminados',
-          detail: `${deleted} documento(s) eliminado(s)`
-        });
-      }
-      if (failed > 0) {
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Advertencia',
-          detail: `${failed} documento(s) no se pudieron eliminar`
-        });
-      }
-      this.selectedDocuments.set(new Set());
-      this.isSelectionMode.set(false);
-      this.loadDocuments();
-    });
+
+    const deleted = results.filter(r => r.status === 'fulfilled').length;
+    const failed = results.filter(r => r.status === 'rejected').length;
+
+    if (deleted > 0) this.toast.success(`${deleted} documento(s) eliminado(s)`);
+    if (failed > 0) this.toast.warning(`${failed} documento(s) no se pudieron eliminar`);
+
+    this.selectedDocuments.set(new Set());
+    this.isSelectionMode.set(false);
+    this.loadDocuments();
   }
 
+  // Quick preview
   openQuickPreview(doc: Document, event: Event): void {
     event.stopPropagation();
     this.previewDocument.set(doc);
@@ -259,6 +247,7 @@ export class Documents implements OnInit {
     this.previewDocument.set(null);
   }
 
+  // Drag & Drop
   onDragOver(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
@@ -275,9 +264,8 @@ export class Documents implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     this.isDragOver.set(false);
-    const droppedFiles = event.dataTransfer?.files;
-    if (droppedFiles) {
-      this.addFiles(Array.from(droppedFiles));
+    if (event.dataTransfer?.files) {
+      this.addFiles(Array.from(event.dataTransfer.files));
     }
   }
 
@@ -289,41 +277,15 @@ export class Documents implements OnInit {
     }
   }
 
-  private addFiles(newFiles: File[]): void {
-    const validFiles: FileUpload[] = [];
-    for (const file of newFiles) {
-      const validation = this.validateFile(file);
+  private addFiles(files: File[]): void {
+    for (const file of files) {
+      const validation = validateFile(file);
       if (validation.valid) {
-        validFiles.push({
-          file,
-          progress: 0,
-          status: 'pending'
-        });
+        this.uploadFiles.update(current => [...current, { file, progress: 0, status: 'pending' }]);
       } else {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Archivo no válido',
-          detail: `${file.name}: ${validation.error}`
-        });
+        this.toast.error(`${file.name}: ${validation.error}`, 'Archivo no válido');
       }
     }
-    if (validFiles.length > 0) {
-      this.uploadFiles.update(current => [...current, ...validFiles]);
-    }
-  }
-
-  private validateFile(file: File): { valid: boolean; error?: string } {
-    const extension = file.name.split('.').pop()?.toLowerCase();
-    if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
-      return {
-        valid: false,
-        error: `Tipo no permitido. Usa: ${ALLOWED_EXTENSIONS.join(', ')}`
-      };
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      return { valid: false, error: 'Excede 50MB' };
-    }
-    return { valid: true };
   }
 
   removeUploadFile(index: number): void {
@@ -337,64 +299,49 @@ export class Documents implements OnInit {
   async startUpload(): Promise<void> {
     const pendingFiles = this.uploadFiles().filter(f => f.status === 'pending');
     if (pendingFiles.length === 0) return;
+
     this.isUploading.set(true);
-    this.uploadFiles.update(current =>
-      current.map(f => f.status === 'pending'
-        ? { ...f, status: 'uploading' as const, progress: 10 }
-        : f
-      )
-    );
+    this.updateUploadStatus('pending', 'uploading', 10);
+
     const progressInterval = setInterval(() => {
       this.uploadFiles.update(current =>
-        current.map(f => {
-          if (f.status === 'uploading' && f.progress < 90) {
-            return { ...f, progress: f.progress + 10 };
-          }
-          return f;
-        })
+        current.map(f => f.status === 'uploading' && f.progress < 90
+          ? { ...f, progress: f.progress + 10 }
+          : f
+        )
       );
     }, 200);
+
     try {
-      const filesToUpload = pendingFiles.map(f => f.file);
-      await this.documentService.upload(filesToUpload).toPromise();
+      await firstValueFrom(this.documentService.upload(pendingFiles.map(f => f.file)));
       clearInterval(progressInterval);
-      this.uploadFiles.update(current =>
-        current.map(f => {
-          if (f.status === 'uploading') {
-            return { ...f, status: 'success' as const, progress: 100 };
-          }
-          return f;
-        })
-      );
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Subida completada',
-        detail: `${pendingFiles.length} documento(s) subido(s)`
-      });
+      this.updateUploadStatus('uploading', 'success', 100);
+      this.toast.success(`${pendingFiles.length} documento(s) subido(s)`, 'Subida completada');
       setTimeout(() => {
         this.uploadFiles.set([]);
         this.loadDocuments();
       }, 1500);
-    } catch (error) {
+    } catch {
       clearInterval(progressInterval);
       this.uploadFiles.update(current =>
-        current.map(f => {
-          if (f.status === 'uploading') {
-            return { ...f, status: 'error' as const, progress: 0, errorMessage: 'Error al subir' };
-          }
-          return f;
-        })
+        current.map(f => f.status === 'uploading'
+          ? { ...f, status: 'error' as const, progress: 0, errorMessage: 'Error al subir' }
+          : f
+        )
       );
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'No se pudieron subir los archivos'
-      });
+      this.toast.error('No se pudieron subir los archivos');
     } finally {
       this.isUploading.set(false);
     }
   }
 
+  private updateUploadStatus(from: FileUpload['status'], to: FileUpload['status'], progress: number): void {
+    this.uploadFiles.update(current =>
+      current.map(f => f.status === from ? { ...f, status: to, progress } : f)
+    );
+  }
+
+  // Document details
   viewDetails(doc: Document): void {
     this.selectedDocument.set(doc);
     this.showDetailDialog.set(true);
@@ -405,6 +352,7 @@ export class Documents implements OnInit {
     this.selectedDocument.set(null);
   }
 
+  // Delete single document
   confirmDelete(doc: Document): void {
     this.confirmationService.confirm({
       message: `¿Estás seguro de eliminar "${doc.fileName}"?`,
@@ -420,54 +368,19 @@ export class Documents implements OnInit {
   private deleteDocument(doc: Document): void {
     this.documentService.delete(doc.id).subscribe({
       next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Eliminado',
-          detail: `"${doc.fileName}" eliminado correctamente`
-        });
+        this.toast.success(`"${doc.fileName}" eliminado correctamente`, 'Eliminado');
         this.loadDocuments();
       },
-      error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudo eliminar el documento'
-        });
-      }
+      error: () => this.toast.error('No se pudo eliminar el documento')
     });
   }
 
+  // Navigation
   goToChat(doc: Document): void {
     this.router.navigate(['/chat'], { queryParams: { documentId: doc.id } });
   }
 
   goToQuiz(doc: Document): void {
     this.router.navigate(['/quizzes/generate'], { queryParams: { documentId: doc.id } });
-  }
-
-  getTypeIcon(contentType: string): string {
-    if (contentType.includes('pdf')) return 'pi-file-pdf';
-    if (contentType.includes('word') || contentType.includes('document')) return 'pi-file-word';
-    if (contentType.includes('csv') || contentType.includes('excel')) return 'pi-file-excel';
-    return 'pi-file';
-  }
-
-  formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  }
-
-  getUploadFileIcon(file: File): string {
-    const ext = file.name.split('.').pop()?.toLowerCase();
-    switch (ext) {
-      case 'pdf': return 'pi-file-pdf';
-      case 'doc':
-      case 'docx': return 'pi-file-word';
-      case 'csv': return 'pi-file-excel';
-      default: return 'pi-file';
-    }
   }
 }

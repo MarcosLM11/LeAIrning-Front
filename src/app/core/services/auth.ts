@@ -1,5 +1,4 @@
-import { Injectable, signal, PLATFORM_ID, inject } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, switchMap, tap, map } from 'rxjs';
@@ -11,48 +10,43 @@ import {
   User,
   UserResponse
 } from '../models/auth.model';
+import { StorageService } from '../../shared/services/storage.service';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private authUrl = 'http://localhost:8080/auth';
-  private usersUrl = 'http://localhost:8080/users';
-  private tokenUrl = 'http://localhost:8080/token';
+  private readonly baseUrl = environment.apiUrl;
+  private readonly authUrl = `${this.baseUrl}/auth`;
+  private readonly usersUrl = `${this.baseUrl}/users`;
+  private readonly tokenUrl = `${this.baseUrl}/token`;
+
   private readonly TOKEN_KEY = 'auth_token';
   private readonly REFRESH_TOKEN_KEY = 'refresh_token';
   private readonly USER_KEY = 'current_user';
-  private platformId = inject(PLATFORM_ID);
 
-  private get isBrowser(): boolean {
-    return isPlatformBrowser(this.platformId);
-  }
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  private storage = inject(StorageService);
 
   private currentUserSignal = signal<User | null>(null);
   currentUser = this.currentUserSignal.asReadonly();
 
-  constructor(
-    private http: HttpClient,
-    private router: Router
-  ) {
-    // Inicializar usuario desde storage solo en el browser
-    if (this.isBrowser) {
-      const user = this.getUserFromStorage();
-      if (user) {
-        this.currentUserSignal.set(user);
-      }
+  constructor() {
+    const user = this.storage.get<User>(this.USER_KEY);
+    if (user) {
+      this.currentUserSignal.set(user);
     }
   }
 
   isAuthenticated(): boolean {
-    // Check signal first, then fallback to token existence
     if (this.currentUserSignal() !== null) {
       return true;
     }
-    // If signal is null but token exists, try to restore user from storage
     const token = this.getToken();
     if (token && !this.isTokenExpired()) {
-      const user = this.getUserFromStorage();
+      const user = this.storage.get<User>(this.USER_KEY);
       if (user) {
         this.currentUserSignal.set(user);
         return true;
@@ -90,23 +84,19 @@ export class AuthService {
   }
 
   logout(): void {
-    if (this.isBrowser) {
-      localStorage.removeItem(this.TOKEN_KEY);
-      localStorage.removeItem(this.REFRESH_TOKEN_KEY);
-      localStorage.removeItem(this.USER_KEY);
-    }
+    this.storage.remove(this.TOKEN_KEY);
+    this.storage.remove(this.REFRESH_TOKEN_KEY);
+    this.storage.remove(this.USER_KEY);
     this.currentUserSignal.set(null);
     this.router.navigate(['/auth/login']);
   }
 
   getToken(): string | null {
-    if (!this.isBrowser) return null;
-    return localStorage.getItem(this.TOKEN_KEY);
+    return this.storage.getString(this.TOKEN_KEY);
   }
 
   getRefreshToken(): string | null {
-    if (!this.isBrowser) return null;
-    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+    return this.storage.getString(this.REFRESH_TOKEN_KEY);
   }
 
   isTokenExpired(): boolean {
@@ -167,26 +157,12 @@ export class AuthService {
   }
 
   private storeTokens(tokens: TokenPair): void {
-    if (!this.isBrowser) return;
-    localStorage.setItem(this.TOKEN_KEY, tokens.access_token);
-    localStorage.setItem(this.REFRESH_TOKEN_KEY, tokens.refresh_token);
+    this.storage.setString(this.TOKEN_KEY, tokens.access_token);
+    this.storage.setString(this.REFRESH_TOKEN_KEY, tokens.refresh_token);
   }
 
   private setCurrentUser(user: User): void {
-    if (this.isBrowser) {
-      localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-    }
+    this.storage.set(this.USER_KEY, user);
     this.currentUserSignal.set(user);
-  }
-
-  private getUserFromStorage(): User | null {
-    if (!this.isBrowser) return null;
-    const userJson = localStorage.getItem(this.USER_KEY);
-    if (!userJson) return null;
-    try {
-      return JSON.parse(userJson);
-    } catch {
-      return null;
-    }
   }
 }

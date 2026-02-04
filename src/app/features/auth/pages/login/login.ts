@@ -6,6 +6,7 @@ import { PasswordModule } from 'primeng/password';
 import { AuthService } from '../../../../core/services/auth';
 import { ThemeToggleComponent } from '../../../../shared/components/theme-toggle/theme-toggle.component';
 import { AuthIllustrationComponent } from '../../../../shared/components/auth-illustration/auth-illustration.component';
+import { SocialLoginButtons } from '../../../../shared/components/social-login-buttons/social-login-buttons';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -18,7 +19,8 @@ import { CommonModule } from '@angular/common';
     InputTextModule,
     PasswordModule,
     ThemeToggleComponent,
-    AuthIllustrationComponent
+    AuthIllustrationComponent,
+    SocialLoginButtons
   ],
   templateUrl: './login.html',
   styleUrl: './login.scss'
@@ -84,14 +86,6 @@ export class Login {
         this.triggerShakeAnimation();
       }
     });
-  }
-
-  loginWithGoogle() {
-    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
-  }
-
-  loginWithGithub() {
-    // TODO: Implement GitHub OAuth
   }
 
   private triggerShakeAnimation() {

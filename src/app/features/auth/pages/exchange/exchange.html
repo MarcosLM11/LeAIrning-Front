@@ -1,9 +1,9 @@
-<div class="exchange-container">
-  <div class="exchange-card">
+<div class="auth-callback-container">
+  <div class="auth-callback-card">
     <app-theme-toggle class="theme-toggle" />
 
     @if (isProcessing()) {
-      <div class="exchange-content processing">
+      <div class="auth-callback-content processing">
         <div class="spinner">
           <i class="pi pi-spin pi-spinner"></i>
         </div>
@@ -11,7 +11,7 @@
         <p>Por favor espera mientras completamos el proceso de autenticación</p>
       </div>
     } @else {
-      <div class="exchange-content error">
+      <div class="auth-callback-content error">
         <div class="icon-wrapper error">
           <i class="pi pi-times-circle"></i>
         </div>

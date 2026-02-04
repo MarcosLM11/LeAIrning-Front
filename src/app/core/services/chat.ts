@@ -1,19 +1,19 @@
-import { Injectable, inject, signal, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ChatRequest, ChatResponse, ChatMessage, Conversation } from '../models/chat.model';
+import { StorageService } from '../../shared/services/storage.service';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
-  private apiUrl = 'http://localhost:8080/chat';
-  private http = inject(HttpClient);
-  private platformId = inject(PLATFORM_ID);
-  private isBrowser = isPlatformBrowser(this.platformId);
-
+  private readonly apiUrl = `${environment.apiUrl}/chat`;
   private readonly CONVERSATIONS_KEY = 'chat_conversations';
+
+  private http = inject(HttpClient);
+  private storage = inject(StorageService);
 
   private conversationsSignal = signal<Conversation[]>(this.loadConversations());
   conversations = this.conversationsSignal.asReadonly();
@@ -78,27 +78,21 @@ export class ChatService {
   }
 
   private loadConversations(): Conversation[] {
-    if (!this.isBrowser) return [];
-    try {
-      const data = localStorage.getItem(this.CONVERSATIONS_KEY);
-      if (!data) return [];
-      const parsed = JSON.parse(data);
-      return parsed.map((conv: Conversation) => ({
-        ...conv,
-        createdAt: new Date(conv.createdAt),
-        updatedAt: new Date(conv.updatedAt),
-        messages: conv.messages.map(msg => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        }))
-      }));
-    } catch {
-      return [];
-    }
+    const data = this.storage.get<Conversation[]>(this.CONVERSATIONS_KEY);
+    if (!data) return [];
+
+    return data.map(conv => ({
+      ...conv,
+      createdAt: new Date(conv.createdAt),
+      updatedAt: new Date(conv.updatedAt),
+      messages: conv.messages.map(msg => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp)
+      }))
+    }));
   }
 
   private saveConversations(conversations: Conversation[]): void {
-    if (!this.isBrowser) return;
-    localStorage.setItem(this.CONVERSATIONS_KEY, JSON.stringify(conversations));
+    this.storage.set(this.CONVERSATIONS_KEY, conversations);
   }
 }

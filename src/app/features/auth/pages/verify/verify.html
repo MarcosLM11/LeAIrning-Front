@@ -1,9 +1,9 @@
-<div class="verify-container">
-  <div class="verify-card">
+<div class="auth-callback-container">
+  <div class="auth-callback-card">
     <app-theme-toggle class="theme-toggle" />
 
     @if (isVerifying()) {
-      <div class="verify-content verifying">
+      <div class="auth-callback-content verifying">
         <div class="spinner">
           <i class="pi pi-spin pi-spinner"></i>
         </div>
@@ -11,7 +11,7 @@
         <p>Por favor espera mientras verificamos tu correo electrónico</p>
       </div>
     } @else if (isSuccess()) {
-      <div class="verify-content success">
+      <div class="auth-callback-content success">
         <div class="icon-wrapper success">
           <i class="pi pi-check-circle"></i>
         </div>
@@ -19,7 +19,7 @@
         <p>Tu cuenta ha sido verificada correctamente. Redirigiendo al dashboard...</p>
       </div>
     } @else {
-      <div class="verify-content error">
+      <div class="auth-callback-content error">
         <div class="icon-wrapper error">
           <i class="pi pi-times-circle"></i>
         </div>

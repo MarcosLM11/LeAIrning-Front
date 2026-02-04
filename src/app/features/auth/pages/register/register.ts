@@ -8,6 +8,7 @@ import { AuthService } from '../../../../core/services/auth';
 import { passwordMatchValidator } from '../../../../core/validators/password-match.validator';
 import { ThemeToggleComponent } from '../../../../shared/components/theme-toggle/theme-toggle.component';
 import { AuthIllustrationComponent } from '../../../../shared/components/auth-illustration/auth-illustration.component';
+import { SocialLoginButtons } from '../../../../shared/components/social-login-buttons/social-login-buttons';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -20,7 +21,8 @@ import { CommonModule } from '@angular/common';
     InputTextModule,
     PasswordModule,
     ThemeToggleComponent,
-    AuthIllustrationComponent
+    AuthIllustrationComponent,
+    SocialLoginButtons
   ],
   templateUrl: './register.html',
   styleUrl: './register.scss',
@@ -157,14 +159,6 @@ export class Register implements OnInit {
         this.triggerShakeAnimation();
       }
     });
-  }
-
-  registerWithGoogle() {
-    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
-  }
-
-  registerWithGithub() {
-    // TODO: Implement GitHub OAuth
   }
 
   private triggerShakeAnimation() {

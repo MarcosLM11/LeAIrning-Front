@@ -2,12 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Document, DocumentPage, DocumentListParams } from '../models/document.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DocumentService {
-  private apiUrl = 'http://localhost:8080/documents';
+  private readonly apiUrl = `${environment.apiUrl}/documents`;
   private http = inject(HttpClient);
 
   upload(files: File[]): Observable<void> {

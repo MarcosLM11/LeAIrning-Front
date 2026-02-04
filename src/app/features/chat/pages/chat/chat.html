@@ -20,46 +20,14 @@
         <span>Documentos</span>
       </div>
 
-      @if (isLoadingDocs()) {
-        <div class="loading-docs">
-          @for (i of [1, 2, 3]; track i) {
-            <p-skeleton height="40px" styleClass="mb-2" />
-          }
-        </div>
-      } @else if (!hasDocuments()) {
-        <div class="no-documents">
-          <i class="pi pi-inbox"></i>
-          <p>No tienes documentos procesados</p>
-          <button class="upload-link" routerLink="/documents/upload">
-            Subir documentos
-          </button>
-        </div>
-      } @else {
-        <div class="documents-list">
-          <label class="select-all-option">
-            <input
-              type="checkbox"
-              [checked]="allSelected()"
-              (change)="toggleSelectAll()"
-            />
-            <span>Seleccionar todos</span>
-          </label>
-
-          @for (doc of documents(); track doc.id) {
-            <label class="document-option">
-              <input
-                type="checkbox"
-                [checked]="isDocumentSelected(doc.id)"
-                (change)="toggleDocument(doc.id)"
-              />
-              <i [class]="'pi ' + getDocumentIcon(doc)"></i>
-              <span class="doc-name" [title]="doc.fileName">
-                {{ doc.fileName }}
-              </span>
-            </label>
-          }
-        </div>
-      }
+      <app-document-selector
+        [documents]="documents()"
+        [selectedIds]="selectedDocumentIds()"
+        [isLoading]="isLoadingDocs()"
+        selectAllLabel="Seleccionar todos"
+        (toggleAll)="toggleSelectAll()"
+        (toggleDocument)="toggleDocument($event)"
+      />
     </div>
 
     <!-- Conversations Section -->

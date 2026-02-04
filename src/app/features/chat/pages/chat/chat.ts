@@ -14,22 +14,20 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
-import { Skeleton } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
+import { DocumentSelector } from '../../../../shared/components/document-selector/document-selector';
+import { firstValueFrom } from 'rxjs';
 import { ChatService } from '../../../../core/services/chat';
 import { DocumentService } from '../../../../core/services/document';
 import { ChatMessage, Conversation } from '../../../../core/models/chat.model';
 import { Document } from '../../../../core/models/document.model';
+import { formatTime, formatDateTime } from '../../../../shared/utils/date.utils';
+import { SelectionManager } from '../../../../shared/utils/selection.utils';
+import { ToastService } from '../../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-chat',
-  imports: [
-    CommonModule,
-    FormsModule,
-    ButtonModule,
-    ToastModule,
-    Skeleton
-  ],
+  imports: [CommonModule, FormsModule, ButtonModule, ToastModule, DocumentSelector],
   providers: [MessageService],
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
@@ -41,30 +39,36 @@ export class Chat implements OnInit, AfterViewChecked {
 
   private chatService = inject(ChatService);
   private documentService = inject(DocumentService);
-  private messageService = inject(MessageService);
+  private toast = inject(ToastService);
   private router = inject(Router);
 
+  // Document selection
+  readonly documentSelection = new SelectionManager<Document>();
+
+  // State
   documents = signal<Document[]>([]);
-  selectedDocumentIds = signal<string[]>([]);
   currentConversation = signal<Conversation | null>(null);
   messageText = signal('');
   isLoadingDocs = signal(true);
   isSending = signal(false);
   showSidebar = signal(true);
 
+  private shouldScrollToBottom = false;
+
+  // Computed
   conversations = this.chatService.conversations;
   messages = computed(() => this.currentConversation()?.messages ?? []);
   hasDocuments = computed(() => this.documents().length > 0);
+  allSelected = this.documentSelection.allSelected;
+  selectedDocumentIds = computed(() => this.documentSelection.getSelectedIds());
+
   canSend = computed(() =>
     this.messageText().trim().length > 0 && !this.isSending()
   );
-  allSelected = computed(() => {
-    const docs = this.documents();
-    const selected = this.selectedDocumentIds();
-    return docs.length > 0 && docs.every(d => selected.includes(d.id));
-  });
 
-  private shouldScrollToBottom = false;
+  // Re-export utils for template
+  formatTime = formatTime;
+  formatDate = formatDateTime;
 
   ngOnInit(): void {
     this.loadDocuments();
@@ -80,53 +84,36 @@ export class Chat implements OnInit, AfterViewChecked {
   private async loadDocuments(): Promise<void> {
     this.isLoadingDocs.set(true);
     try {
-      const response = await this.documentService.list({ size: 100 }).toPromise();
-      this.documents.set(response?.content ?? []);
-      if (this.selectedDocumentIds().length === 0 && response?.content) {
-        this.selectedDocumentIds.set(response.content.map(d => d.id));
+      const response = await firstValueFrom(this.documentService.list({ size: 100 }));
+      const docs = response?.content ?? [];
+      this.documents.set(docs);
+      this.documentSelection.setItems(docs);
+
+      // Select all documents by default
+      if (docs.length > 0) {
+        this.documentSelection.selectAll();
       }
-    } catch (error) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'No se pudieron cargar los documentos'
-      });
+    } catch {
+      this.toast.error('No se pudieron cargar los documentos');
     } finally {
       this.isLoadingDocs.set(false);
     }
   }
 
   toggleSelectAll(): void {
-    const docs = this.documents();
-    if (this.allSelected()) {
-      this.selectedDocumentIds.set([]);
-    } else {
-      this.selectedDocumentIds.set(docs.map(d => d.id));
-    }
+    this.documentSelection.toggleAll();
   }
 
   toggleDocument(docId: string): void {
-    this.selectedDocumentIds.update(ids => {
-      if (ids.includes(docId)) {
-        return ids.filter(id => id !== docId);
-      }
-      return [...ids, docId];
-    });
-  }
-
-  isDocumentSelected(docId: string): boolean {
-    return this.selectedDocumentIds().includes(docId);
+    this.documentSelection.toggle(docId);
   }
 
   startNewConversation(): void {
     if (this.selectedDocumentIds().length === 0) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Selecciona documentos',
-        detail: 'Debes seleccionar al menos un documento para chatear'
-      });
+      this.toast.warning('Debes seleccionar al menos un documento para chatear', 'Selecciona documentos');
       return;
     }
+
     const conversation = this.chatService.createConversation(
       'Nueva conversación',
       this.selectedDocumentIds()
@@ -137,7 +124,7 @@ export class Chat implements OnInit, AfterViewChecked {
 
   selectConversation(conversation: Conversation): void {
     this.currentConversation.set(conversation);
-    this.selectedDocumentIds.set(conversation.documentIds);
+    this.documentSelection.setSelectedIds(conversation.documentIds);
     this.shouldScrollToBottom = true;
   }
 
@@ -152,35 +139,34 @@ export class Chat implements OnInit, AfterViewChecked {
   async sendMessage(): Promise<void> {
     const text = this.messageText().trim();
     if (!text || this.isSending()) return;
+
     let conversation = this.currentConversation();
+
     if (!conversation) {
       if (this.selectedDocumentIds().length === 0) {
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Selecciona documentos',
-          detail: 'Debes seleccionar al menos un documento para chatear'
-        });
+        this.toast.warning('Debes seleccionar al menos un documento para chatear', 'Selecciona documentos');
         return;
       }
-      conversation = this.chatService.createConversation(
-        text.substring(0, 50) + (text.length > 50 ? '...' : ''),
-        this.selectedDocumentIds()
-      );
+      const title = text.length > 50 ? `${text.substring(0, 50)}...` : text;
+      conversation = this.chatService.createConversation(title, this.selectedDocumentIds());
       this.currentConversation.set(conversation);
     }
+
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: 'user',
       content: text,
       timestamp: new Date()
     };
+
     this.chatService.addMessage(conversation.id, userMessage);
-    this.currentConversation.set(this.chatService.getConversation(conversation.id) ?? null);
+    this.refreshCurrentConversation(conversation.id);
     this.messageText.set('');
     this.shouldScrollToBottom = true;
     this.isSending.set(true);
+
     try {
-      const response = await this.chatService.ask(text, conversation.id).toPromise();
+      const response = await firstValueFrom(this.chatService.ask(text, conversation.id));
       if (response) {
         const assistantMessage: ChatMessage = {
           id: crypto.randomUUID(),
@@ -189,18 +175,18 @@ export class Chat implements OnInit, AfterViewChecked {
           timestamp: new Date(response.timestamp)
         };
         this.chatService.addMessage(conversation.id, assistantMessage);
-        this.currentConversation.set(this.chatService.getConversation(conversation.id) ?? null);
+        this.refreshCurrentConversation(conversation.id);
         this.shouldScrollToBottom = true;
       }
-    } catch (error) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'No se pudo enviar el mensaje. Inténtalo de nuevo.'
-      });
+    } catch {
+      this.toast.error('No se pudo enviar el mensaje. Inténtalo de nuevo.');
     } finally {
       this.isSending.set(false);
     }
+  }
+
+  private refreshCurrentConversation(conversationId: string): void {
+    this.currentConversation.set(this.chatService.getConversation(conversationId) ?? null);
   }
 
   onKeyDown(event: KeyboardEvent): void {
@@ -219,32 +205,9 @@ export class Chat implements OnInit, AfterViewChecked {
   }
 
   private scrollToBottom(): void {
-    if (this.messagesContainer?.nativeElement) {
-      const container = this.messagesContainer.nativeElement;
+    const container = this.messagesContainer?.nativeElement;
+    if (container) {
       container.scrollTop = container.scrollHeight;
     }
-  }
-
-  formatTime(date: Date): string {
-    return new Date(date).toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  formatDate(date: Date): string {
-    return new Date(date).toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  getDocumentIcon(doc: Document): string {
-    if (doc.contentType.includes('pdf')) return 'pi-file-pdf';
-    if (doc.contentType.includes('word') || doc.contentType.includes('document')) return 'pi-file-word';
-    if (doc.contentType.includes('csv') || doc.contentType.includes('excel')) return 'pi-file-excel';
-    return 'pi-file';
   }
 }

@@ -14,22 +14,38 @@ import { SliderModule } from 'primeng/slider';
 import { SelectModule } from 'primeng/select';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ToastModule } from 'primeng/toast';
-import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
+import { DocumentSelector } from '../../../../shared/components/document-selector/document-selector';
+import { firstValueFrom } from 'rxjs';
 import { QuizService } from '../../../../core/services/quiz';
 import { DocumentService } from '../../../../core/services/document';
 import { Document } from '../../../../core/models/document.model';
-import {
-  Quiz,
-  GenerateQuizRequest,
-  QuestionType,
-  DifficultyLevel
-} from '../../../../core/models/quiz.model';
+import { Quiz, GenerateQuizRequest, QuestionType, DifficultyLevel } from '../../../../core/models/quiz.model';
+import { SelectionManager } from '../../../../shared/utils/selection.utils';
+import { ToastService } from '../../../../shared/services/toast.service';
 
 interface DifficultyOption {
   label: string;
   value: DifficultyLevel;
 }
+
+interface QuestionTypeOption {
+  label: string;
+  value: QuestionType;
+  icon: string;
+}
+
+const DIFFICULTY_OPTIONS: DifficultyOption[] = [
+  { label: 'Fácil', value: 'EASY' },
+  { label: 'Medio', value: 'MEDIUM' },
+  { label: 'Difícil', value: 'HARD' }
+];
+
+const QUESTION_TYPE_OPTIONS: QuestionTypeOption[] = [
+  { label: 'Opción múltiple', value: 'MULTIPLE_CHOICE', icon: 'pi-list' },
+  { label: 'Verdadero/Falso', value: 'TRUE_FALSE', icon: 'pi-check-square' },
+  { label: 'Respuesta corta', value: 'SHORT_ANSWER', icon: 'pi-pencil' }
+];
 
 @Component({
   selector: 'app-generate-quiz',
@@ -41,7 +57,7 @@ interface DifficultyOption {
     SelectModule,
     CheckboxModule,
     ToastModule,
-    SkeletonModule
+    DocumentSelector
   ],
   providers: [MessageService],
   templateUrl: './generate.html',
@@ -51,64 +67,59 @@ interface DifficultyOption {
 export class Generate implements OnInit {
   private quizService = inject(QuizService);
   private documentService = inject(DocumentService);
-  private messageService = inject(MessageService);
+  private toast = inject(ToastService);
   private router = inject(Router);
 
+  // Document selection
+  readonly documentSelection = new SelectionManager<Document>();
+
+  // Quiz configuration
   documents = signal<Document[]>([]);
-  selectedDocumentIds = signal<string[]>([]);
   numberOfQuestions = signal(10);
   selectedDifficulty = signal<DifficultyLevel>('MEDIUM');
   selectedTypes = signal<QuestionType[]>(['MULTIPLE_CHOICE']);
+
+  // Loading states
   isLoadingDocs = signal(true);
   isGenerating = signal(false);
+
+  // Quiz state
   generatedQuiz = signal<Quiz | null>(null);
   currentQuestionIndex = signal(0);
   userAnswers = signal<Record<string, string>>({});
   showResults = signal(false);
 
-  difficultyOptions: DifficultyOption[] = [
-    { label: 'Fácil', value: 'EASY' },
-    { label: 'Medio', value: 'MEDIUM' },
-    { label: 'Difícil', value: 'HARD' }
-  ];
+  // Options
+  readonly difficultyOptions = DIFFICULTY_OPTIONS;
+  readonly questionTypeOptions = QUESTION_TYPE_OPTIONS;
 
-  questionTypeOptions = [
-    { label: 'Opción múltiple', value: 'MULTIPLE_CHOICE' as QuestionType, icon: 'pi-list' },
-    { label: 'Verdadero/Falso', value: 'TRUE_FALSE' as QuestionType, icon: 'pi-check-square' },
-    { label: 'Respuesta corta', value: 'SHORT_ANSWER' as QuestionType, icon: 'pi-pencil' }
-  ];
-
+  // Computed from selection manager
   hasDocuments = computed(() => this.documents().length > 0);
+  allSelected = this.documentSelection.allSelected;
+  selectedDocumentIds = computed(() => this.documentSelection.getSelectedIds());
+
   canGenerate = computed(() =>
     this.selectedDocumentIds().length > 0 &&
     this.selectedTypes().length > 0 &&
     !this.isGenerating()
   );
-  allSelected = computed(() => {
-    const docs = this.documents();
-    const selected = this.selectedDocumentIds();
-    return docs.length > 0 && docs.every(d => selected.includes(d.id));
-  });
+
   currentQuestion = computed(() => {
     const quiz = this.generatedQuiz();
-    if (!quiz) return null;
-    return quiz.questions[this.currentQuestionIndex()];
+    return quiz?.questions[this.currentQuestionIndex()] ?? null;
   });
+
   isLastQuestion = computed(() => {
     const quiz = this.generatedQuiz();
-    if (!quiz) return false;
-    return this.currentQuestionIndex() >= quiz.questions.length - 1;
+    return quiz ? this.currentQuestionIndex() >= quiz.questions.length - 1 : false;
   });
+
   quizScore = computed(() => {
     const quiz = this.generatedQuiz();
     const answers = this.userAnswers();
     if (!quiz) return { correct: 0, total: 0, percentage: 0 };
-    let correct = 0;
-    for (const question of quiz.questions) {
-      if (answers[question.id] === question.correctAnswer) {
-        correct++;
-      }
-    }
+
+    const correct = quiz.questions.filter(q => answers[q.id] === q.correctAnswer).length;
     return {
       correct,
       total: quiz.questions.length,
@@ -123,46 +134,29 @@ export class Generate implements OnInit {
   private async loadDocuments(): Promise<void> {
     this.isLoadingDocs.set(true);
     try {
-      const response = await this.documentService.list({ size: 100 }).toPromise();
-      this.documents.set(response?.content ?? []);
-    } catch (error) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'No se pudieron cargar los documentos'
-      });
+      const response = await firstValueFrom(this.documentService.list({ size: 100 }));
+      const docs = response?.content ?? [];
+      this.documents.set(docs);
+      this.documentSelection.setItems(docs);
+    } catch {
+      this.toast.error('No se pudieron cargar los documentos');
     } finally {
       this.isLoadingDocs.set(false);
     }
   }
 
   toggleSelectAll(): void {
-    const docs = this.documents();
-    if (this.allSelected()) {
-      this.selectedDocumentIds.set([]);
-    } else {
-      this.selectedDocumentIds.set(docs.map(d => d.id));
-    }
+    this.documentSelection.toggleAll();
   }
 
   toggleDocument(docId: string): void {
-    this.selectedDocumentIds.update(ids => {
-      if (ids.includes(docId)) {
-        return ids.filter(id => id !== docId);
-      }
-      return [...ids, docId];
-    });
-  }
-
-  isDocumentSelected(docId: string): boolean {
-    return this.selectedDocumentIds().includes(docId);
+    this.documentSelection.toggle(docId);
   }
 
   toggleQuestionType(type: QuestionType): void {
     this.selectedTypes.update(types => {
       if (types.includes(type)) {
-        if (types.length === 1) return types;
-        return types.filter(t => t !== type);
+        return types.length > 1 ? types.filter(t => t !== type) : types;
       }
       return [...types, type];
     });
@@ -174,6 +168,7 @@ export class Generate implements OnInit {
 
   async generateQuiz(): Promise<void> {
     if (!this.canGenerate()) return;
+
     this.isGenerating.set(true);
     try {
       const request: GenerateQuizRequest = {
@@ -182,35 +177,29 @@ export class Generate implements OnInit {
         questionTypes: this.selectedTypes(),
         difficulty: this.selectedDifficulty()
       };
-      const quiz = await this.quizService.generate(request).toPromise();
+
+      const quiz = await firstValueFrom(this.quizService.generate(request));
       if (quiz) {
         this.generatedQuiz.set(quiz);
         this.quizService.saveQuiz(quiz);
-        this.currentQuestionIndex.set(0);
-        this.userAnswers.set({});
-        this.showResults.set(false);
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Quiz generado',
-          detail: `Se han generado ${quiz.questions.length} preguntas`
-        });
+        this.resetQuizState();
+        this.toast.success(`Se han generado ${quiz.questions.length} preguntas`, 'Quiz generado');
       }
-    } catch (error) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'No se pudo generar el quiz. Inténtalo de nuevo.'
-      });
+    } catch {
+      this.toast.error('No se pudo generar el quiz. Inténtalo de nuevo.');
     } finally {
       this.isGenerating.set(false);
     }
   }
 
+  private resetQuizState(): void {
+    this.currentQuestionIndex.set(0);
+    this.userAnswers.set({});
+    this.showResults.set(false);
+  }
+
   selectAnswer(questionId: string, answer: string): void {
-    this.userAnswers.update(answers => ({
-      ...answers,
-      [questionId]: answer
-    }));
+    this.userAnswers.update(answers => ({ ...answers, [questionId]: answer }));
   }
 
   getSelectedAnswer(questionId: string): string | undefined {
@@ -219,8 +208,7 @@ export class Generate implements OnInit {
 
   nextQuestion(): void {
     const quiz = this.generatedQuiz();
-    if (!quiz) return;
-    if (this.currentQuestionIndex() < quiz.questions.length - 1) {
+    if (quiz && this.currentQuestionIndex() < quiz.questions.length - 1) {
       this.currentQuestionIndex.update(i => i + 1);
     }
   }
@@ -236,9 +224,7 @@ export class Generate implements OnInit {
   }
 
   retryQuiz(): void {
-    this.currentQuestionIndex.set(0);
-    this.userAnswers.set({});
-    this.showResults.set(false);
+    this.resetQuizState();
   }
 
   generateNewQuiz(): void {
@@ -250,25 +236,16 @@ export class Generate implements OnInit {
     this.router.navigate(['/dashboard']);
   }
 
-  getDocumentIcon(doc: Document): string {
-    if (doc.contentType.includes('pdf')) return 'pi-file-pdf';
-    if (doc.contentType.includes('word') || doc.contentType.includes('document')) return 'pi-file-word';
-    if (doc.contentType.includes('csv') || doc.contentType.includes('excel')) return 'pi-file-excel';
-    return 'pi-file';
-  }
-
   isAnswerCorrect(questionId: string, answer: string): boolean {
     const quiz = this.generatedQuiz();
     if (!quiz || !this.showResults()) return false;
-    const question = quiz.questions.find(q => q.id === questionId);
-    return question?.correctAnswer === answer;
+    return quiz.questions.find(q => q.id === questionId)?.correctAnswer === answer;
   }
 
   isAnswerIncorrect(questionId: string, answer: string): boolean {
     const quiz = this.generatedQuiz();
     const userAnswer = this.userAnswers()[questionId];
     if (!quiz || !this.showResults() || userAnswer !== answer) return false;
-    const question = quiz.questions.find(q => q.id === questionId);
-    return question?.correctAnswer !== answer;
+    return quiz.questions.find(q => q.id === questionId)?.correctAnswer !== answer;
   }
 }

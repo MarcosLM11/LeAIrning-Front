@@ -1,135 +1,51 @@
-:host {
-  --primary-color: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-light: #818cf8;
-  --text-main: #111827;
-  --text-secondary: #6b7280;
-  --bg-main: #f3f4f6;
-  --card-bg: #ffffff;
-  --border-color: #e5e7eb;
-  --success-color: #10b981;
-  --error-color: #ef4444;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-// Dark theme
-:host-context(.dark-theme) {
-  --text-main: #f9fafb;
-  --text-secondary: #d1d5db;
-  --bg-main: #111827;
-  --card-bg: #1f2937;
-  --border-color: #374151;
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
-  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-}
+@use '../../shared/styles/auth-base' as base;
 
 .register-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  background: var(--bg-main);
-  position: relative;
-  overflow: hidden;
+  @include base.auth-container;
 }
 
-// Animated gradient background
-.animated-background {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
+// Gradient orbs - register specific positions
+.animated-background .gradient-orb {
+  &.orb-1 {
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, #6366f1, transparent);
+    top: -10%;
+    right: -10%;
+    animation-delay: 0s;
+  }
 
-  .gradient-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.3;
-    animation: float 20s ease-in-out infinite;
+  &.orb-2 {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, var(--primary-light), transparent);
+    bottom: -10%;
+    left: -10%;
+    animation-delay: 7s;
+  }
 
-    &.orb-1 {
-      width: 500px;
-      height: 500px;
-      background: radial-gradient(circle, #6366f1, transparent);
-      top: -10%;
-      right: -10%;
-      animation-delay: 0s;
-    }
-
-    &.orb-2 {
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, var(--primary-light), transparent);
-      bottom: -10%;
-      left: -10%;
-      animation-delay: 7s;
-    }
-
-    &.orb-3 {
-      width: 350px;
-      height: 350px;
-      background: radial-gradient(circle, var(--primary-color), transparent);
-      top: 40%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      animation-delay: 14s;
-    }
+  &.orb-3 {
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(circle, var(--primary-color), transparent);
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation-delay: 14s;
   }
 }
 
-// Particles
-.particles {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  overflow: hidden;
-
-  .particle {
-    position: absolute;
-    bottom: -10px;
-    width: 4px;
-    height: 4px;
-    background: var(--primary-color);
-    border-radius: 50%;
-    opacity: 0;
-    animation: rise linear infinite;
-  }
-}
-
-// Main card
+// Card sizing - register specific
 .auth-card {
-  position: relative;
-  z-index: 10;
-  width: 100%;
   max-width: 480px;
-  background: var(--card-bg);
-  border-radius: 20px;
-  padding: 1.5rem 1.5rem;
-  box-shadow: var(--shadow-xl);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--border-color);
-  animation: slideUp 0.6s ease-out;
-
-  &.shake {
-    animation: shake 0.6s ease-in-out;
-  }
+  padding: 1.5rem;
 
   @media (min-width: 768px) {
     padding: 1.75rem 2.25rem;
   }
 }
 
-.card-content {
-  position: relative;
-}
-
-// Progress indicator
+// Progress indicator - register specific
 .progress-indicator {
   display: flex;
   align-items: center;
@@ -210,8 +126,6 @@
 // Illustration
 .illustration-section {
   margin-bottom: 0.75rem;
-  display: flex;
-  justify-content: center;
   
   ::ng-deep app-auth-illustration {
     max-width: 260px;
@@ -219,172 +133,18 @@
   }
 }
 
-// Brand
+// Brand spacing
 .brand-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.625rem;
   margin-bottom: 1rem;
-
-  .logo-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.25rem;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-  }
-
-  .brand-name {
-    font-size: 1.5rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.02em;
-  }
 }
 
 .welcome-text {
-  text-align: center;
   margin-bottom: 1rem;
-
-  h1 {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--text-main);
-    margin: 0 0 0.375rem 0;
-    letter-spacing: -0.03em;
-  }
-
-  p {
-    color: var(--text-secondary);
-    margin: 0;
-    font-size: 0.9rem;
-  }
 }
 
-// Social login
+// Social login spacing
 .social-login {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.625rem;
   margin-bottom: 1rem;
-
-  .social-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.625rem;
-    padding: 0.875rem 1rem;
-    background: var(--card-bg);
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: var(--text-main);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-
-    &::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    span, svg, i {
-      position: relative;
-      z-index: 1;
-    }
-
-    svg {
-      flex-shrink: 0;
-    }
-
-    i {
-      font-size: 1.25rem;
-    }
-
-    &:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-      border-color: var(--primary-color);
-
-      &::before {
-        opacity: 0.05;
-      }
-    }
-
-    &:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    &.github-btn i {
-      color: #24292e;
-    }
-
-    :host-context(.dark-theme) &.github-btn i {
-      color: #f9fafb;
-    }
-  }
-}
-
-.divider {
-  display: flex;
-  align-items: center;
-  margin: 1rem 0;
-  color: var(--text-secondary);
-  font-size: 0.8125rem;
-
-  &::before,
-  &::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border-color);
-  }
-
-  span {
-    padding: 0 1rem;
-    font-weight: 500;
-  }
-}
-
-// Error alert
-.error-alert {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid var(--error-color);
-  border-radius: 12px;
-  color: var(--error-color);
-  margin-bottom: 1.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  animation: slideDown 0.3s ease-out;
-
-  i {
-    font-size: 1.25rem;
-    flex-shrink: 0;
-  }
 }
 
 // Step content
@@ -392,121 +152,9 @@
   min-height: 160px;
 }
 
-// Form fields
-.form-field {
-  margin-bottom: 1rem;
-  position: relative;
-
-  label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.625rem;
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: var(--text-main);
-
-    i {
-      font-size: 1rem;
-      color: var(--text-secondary);
-    }
-  }
-
-  .success-icon {
-    position: absolute;
-    right: 1rem;
-    top: 2.75rem;
-    color: var(--success-color);
-    font-size: 1.25rem;
-    animation: scaleIn 0.3s ease-out;
-    z-index: 10;
-  }
-
-  .error-message {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    margin-top: 0.5rem;
-    color: var(--error-color);
-    font-size: 0.8125rem;
-    font-weight: 500;
-    animation: slideDown 0.2s ease-out;
-
-    i {
-      font-size: 1rem;
-    }
-  }
-
-  &.has-success {
-    :host ::ng-deep .p-inputtext,
-    :host ::ng-deep .p-password input {
-      border-color: var(--success-color);
-      background: rgba(16, 185, 129, 0.05);
-    }
-  }
-}
-
-// Input styling
-:host ::ng-deep {
-  .p-inputtext {
-    width: 100%;
-    padding: 0.875rem 1.125rem;
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    background: var(--card-bg);
-    color: var(--text-main);
-    font-size: 0.9375rem;
-    transition: all 0.3s ease;
-    font-weight: 500;
-
-    &::placeholder {
-      color: var(--text-secondary);
-      font-weight: 400;
-    }
-
-    &:hover:not(:disabled) {
-      border-color: #cbd5e1;
-    }
-
-    &:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
-      outline: none;
-    }
-
-    &.error {
-      border-color: var(--error-color);
-      background: rgba(239, 68, 68, 0.05);
-
-      &:focus {
-        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
-      }
-    }
-  }
-
-  .p-password {
-    width: 100%;
-
-    input {
-      padding-right: 3rem;
-    }
-
-    .p-password-toggle-icon {
-      right: 1rem;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: color 0.2s ease;
-
-      &:hover {
-        color: var(--primary-color);
-      }
-    }
-
-    // Password strength meter
-    .p-password-panel {
-      margin-top: 0.5rem;
-    }
-  }
+// Password panel
+:host ::ng-deep .p-password .p-password-panel {
+  margin-top: 0.5rem;
 }
 
 // Step buttons
@@ -542,163 +190,8 @@
   }
 }
 
-// Submit button
-.submit-btn {
-  width: 100%;
-  padding: 1rem;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-  border: none;
-  border-radius: 12px;
-  color: white;
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.625rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, var(--primary-hover), var(--primary-color));
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  span, i {
-    position: relative;
-    z-index: 1;
-  }
-
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
-
-    &::before {
-      opacity: 1;
-    }
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  &.loading {
-    i {
-      animation: spin 1s linear infinite;
-    }
-  }
-}
-
 .login-link {
-  text-align: center;
-  margin-top: 1.25rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--border-color);
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-
-  a {
-    color: var(--primary-color);
-    font-weight: 700;
-    text-decoration: none;
-    transition: all 0.2s ease;
-
-    &:hover {
-      color: var(--primary-hover);
-      text-decoration: underline;
-    }
-  }
-}
-
-// Animations
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
-  20%, 40%, 60%, 80% { transform: translateX(10px); }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translate(0, 0);
-  }
-  33% {
-    transform: translate(30px, -30px);
-  }
-  66% {
-    transform: translate(-20px, 20px);
-  }
-}
-
-@keyframes rise {
-  0% {
-    bottom: -10px;
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    bottom: 100%;
-    opacity: 0;
-  }
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  @include base.auth-link;
 }
 
 // Responsive
@@ -709,14 +202,6 @@
 
   .auth-card {
     padding: 2rem 1.5rem;
-  }
-
-  .welcome-text h1 {
-    font-size: 1.5rem;
-  }
-
-  .social-login {
-    grid-template-columns: 1fr;
   }
 
   .progress-indicator {
@@ -741,3 +226,5 @@
     grid-template-columns: 1fr;
   }
 }
+
+@include base.auth-responsive;

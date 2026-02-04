@@ -1,5 +1,4 @@
-import { Injectable, inject, signal, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { Injectable, inject, signal } from '@angular/core';
 import { Observable, of, delay } from 'rxjs';
 import {
   Quiz,
@@ -7,16 +6,16 @@ import {
   GenerateQuizRequest,
   QuizAttempt
 } from '../models/quiz.model';
+import { StorageService } from '../../shared/services/storage.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class QuizService {
-  private platformId = inject(PLATFORM_ID);
-  private isBrowser = isPlatformBrowser(this.platformId);
-
   private readonly QUIZZES_KEY = 'generated_quizzes';
   private readonly ATTEMPTS_KEY = 'quiz_attempts';
+
+  private storage = inject(StorageService);
 
   private quizzesSignal = signal<Quiz[]>(this.loadQuizzes());
   quizzes = this.quizzesSignal.asReadonly();
@@ -64,11 +63,9 @@ export class QuizService {
   }
 
   saveAttempt(attempt: QuizAttempt): void {
-    if (!this.isBrowser) return;
-
     const attempts = this.loadAttempts();
     attempts.push(attempt);
-    localStorage.setItem(this.ATTEMPTS_KEY, JSON.stringify(attempts));
+    this.storage.set(this.ATTEMPTS_KEY, attempts);
   }
 
   getAttempts(quizId: string): QuizAttempt[] {
@@ -115,39 +112,26 @@ export class QuizService {
   }
 
   private loadQuizzes(): Quiz[] {
-    if (!this.isBrowser) return [];
+    const data = this.storage.get<Quiz[]>(this.QUIZZES_KEY);
+    if (!data) return [];
 
-    try {
-      const data = localStorage.getItem(this.QUIZZES_KEY);
-      if (!data) return [];
-
-      return JSON.parse(data).map((quiz: Quiz) => ({
-        ...quiz,
-        createdAt: new Date(quiz.createdAt)
-      }));
-    } catch {
-      return [];
-    }
+    return data.map(quiz => ({
+      ...quiz,
+      createdAt: new Date(quiz.createdAt)
+    }));
   }
 
   private saveQuizzesToStorage(quizzes: Quiz[]): void {
-    if (!this.isBrowser) return;
-    localStorage.setItem(this.QUIZZES_KEY, JSON.stringify(quizzes));
+    this.storage.set(this.QUIZZES_KEY, quizzes);
   }
 
   private loadAttempts(): QuizAttempt[] {
-    if (!this.isBrowser) return [];
+    const data = this.storage.get<QuizAttempt[]>(this.ATTEMPTS_KEY);
+    if (!data) return [];
 
-    try {
-      const data = localStorage.getItem(this.ATTEMPTS_KEY);
-      if (!data) return [];
-
-      return JSON.parse(data).map((attempt: QuizAttempt) => ({
-        ...attempt,
-        completedAt: new Date(attempt.completedAt)
-      }));
-    } catch {
-      return [];
-    }
+    return data.map(attempt => ({
+      ...attempt,
+      completedAt: new Date(attempt.completedAt)
+    }));
   }
 }

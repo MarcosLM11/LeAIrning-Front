@@ -11,28 +11,20 @@ import { ButtonModule } from 'primeng/button';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { firstValueFrom } from 'rxjs';
 import { DocumentService } from '../../../../core/services/document';
-import { Document } from '../../../../core/models/document.model';
-
-interface FileUpload {
-  file: File;
-  progress: number;
-  status: 'pending' | 'uploading' | 'success' | 'error';
-  document?: Document;
-  errorMessage?: string;
-}
-
-const ALLOWED_EXTENSIONS = ['pdf', 'txt', 'csv', 'doc', 'docx', 'md'];
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+import { validateFile, formatFileSize, getFileIcon } from '../../../../shared/utils/file.utils';
+import {
+  FileUpload,
+  UploadStatus,
+  UPLOAD_STATUS_ICONS,
+  UPLOAD_STATUS_CLASSES
+} from '../../../../shared/models/file-upload.model';
+import { ToastService } from '../../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-upload',
-  imports: [
-    CommonModule,
-    ButtonModule,
-    ProgressBarModule,
-    ToastModule
-  ],
+  imports: [CommonModule, ButtonModule, ProgressBarModule, ToastModule],
   providers: [MessageService],
   templateUrl: './upload.html',
   styleUrl: './upload.scss',
@@ -40,7 +32,7 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 })
 export class Upload {
   private documentService = inject(DocumentService);
-  private messageService = inject(MessageService);
+  private toast = inject(ToastService);
   private router = inject(Router);
 
   files = signal<FileUpload[]>([]);
@@ -48,16 +40,18 @@ export class Upload {
   isUploading = signal(false);
 
   hasFiles = computed(() => this.files().length > 0);
-  canUpload = computed(() => {
-    const fileList = this.files();
-    return fileList.length > 0 && fileList.some(f => f.status === 'pending');
-  });
+  canUpload = computed(() => this.files().some(f => f.status === 'pending'));
   uploadProgress = computed(() => {
     const fileList = this.files();
     if (fileList.length === 0) return 0;
-    const total = fileList.reduce((sum, f) => sum + f.progress, 0);
-    return Math.round(total / fileList.length);
+    return Math.round(fileList.reduce((sum, f) => sum + f.progress, 0) / fileList.length);
   });
+
+  // Re-export utils for template
+  formatFileSize = formatFileSize;
+  getFileIcon = (file: File) => getFileIcon(file.name);
+  getStatusIcon = (status: UploadStatus) => UPLOAD_STATUS_ICONS[status];
+  getStatusClass = (status: UploadStatus) => UPLOAD_STATUS_CLASSES[status];
 
   onDragOver(event: DragEvent): void {
     event.preventDefault();
@@ -75,9 +69,8 @@ export class Upload {
     event.preventDefault();
     event.stopPropagation();
     this.isDragOver.set(false);
-    const droppedFiles = event.dataTransfer?.files;
-    if (droppedFiles) {
-      this.addFiles(Array.from(droppedFiles));
+    if (event.dataTransfer?.files) {
+      this.addFiles(Array.from(event.dataTransfer.files));
     }
   }
 
@@ -90,43 +83,14 @@ export class Upload {
   }
 
   private addFiles(newFiles: File[]): void {
-    const validFiles: FileUpload[] = [];
     for (const file of newFiles) {
-      const validation = this.validateFile(file);
+      const validation = validateFile(file);
       if (validation.valid) {
-        validFiles.push({
-          file,
-          progress: 0,
-          status: 'pending'
-        });
+        this.files.update(current => [...current, { file, progress: 0, status: 'pending' }]);
       } else {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Archivo no válido',
-          detail: `${file.name}: ${validation.error}`
-        });
+        this.toast.error(`${file.name}: ${validation.error}`, 'Archivo no válido');
       }
     }
-    if (validFiles.length > 0) {
-      this.files.update(current => [...current, ...validFiles]);
-    }
-  }
-
-  private validateFile(file: File): { valid: boolean; error?: string } {
-    const extension = file.name.split('.').pop()?.toLowerCase();
-    if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
-      return {
-        valid: false,
-        error: `Tipo de archivo no permitido. Usa: ${ALLOWED_EXTENSIONS.join(', ')}`
-      };
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      return {
-        valid: false,
-        error: 'El archivo excede el tamaño máximo de 50MB'
-      };
-    }
-    return { valid: true };
   }
 
   removeFile(index: number): void {
@@ -140,101 +104,45 @@ export class Upload {
   async uploadFiles(): Promise<void> {
     const pendingFiles = this.files().filter(f => f.status === 'pending');
     if (pendingFiles.length === 0) return;
+
     this.isUploading.set(true);
-    this.files.update(current =>
-      current.map(f => f.status === 'pending' ? { ...f, status: 'uploading' as const, progress: 10 } : f)
-    );
+    this.updateFilesStatus('pending', 'uploading', 10);
+
+    const progressInterval = setInterval(() => {
+      this.files.update(current =>
+        current.map(f => f.status === 'uploading' && f.progress < 90
+          ? { ...f, progress: f.progress + 10 }
+          : f
+        )
+      );
+    }, 200);
+
     try {
-      const filesToUpload = pendingFiles.map(f => f.file);
-      const progressInterval = setInterval(() => {
-        this.files.update(current =>
-          current.map(f => {
-            if (f.status === 'uploading' && f.progress < 90) {
-              return { ...f, progress: f.progress + 10 };
-            }
-            return f;
-          })
-        );
-      }, 200);
-      await this.documentService.upload(filesToUpload).toPromise();
+      await firstValueFrom(this.documentService.upload(pendingFiles.map(f => f.file)));
+      clearInterval(progressInterval);
+      this.updateFilesStatus('uploading', 'success', 100);
+      this.toast.success(`${pendingFiles.length} documento(s) subido(s) correctamente`, 'Subida completada');
+    } catch {
       clearInterval(progressInterval);
       this.files.update(current =>
-        current.map(f => {
-          if (f.status === 'uploading') {
-            return { ...f, status: 'success' as const, progress: 100 };
-          }
-          return f;
-        })
+        current.map(f => f.status === 'uploading'
+          ? { ...f, status: 'error' as const, progress: 0, errorMessage: 'Error al subir el archivo' }
+          : f
+        )
       );
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Subida completada',
-        detail: `${pendingFiles.length} documento(s) subido(s) correctamente`
-      });
-    } catch (error) {
-      this.files.update(current =>
-        current.map(f => {
-          if (f.status === 'uploading') {
-            return {
-              ...f,
-              status: 'error' as const,
-              progress: 0,
-              errorMessage: 'Error al subir el archivo'
-            };
-          }
-          return f;
-        })
-      );
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error de subida',
-        detail: 'No se pudieron subir los archivos. Inténtalo de nuevo.'
-      });
+      this.toast.error('No se pudieron subir los archivos. Inténtalo de nuevo.', 'Error de subida');
     } finally {
       this.isUploading.set(false);
     }
   }
 
+  private updateFilesStatus(from: UploadStatus, to: UploadStatus, progress: number): void {
+    this.files.update(current =>
+      current.map(f => f.status === from ? { ...f, status: to, progress } : f)
+    );
+  }
+
   goBack(): void {
     this.router.navigate(['/dashboard']);
-  }
-
-  getFileIcon(file: File): string {
-    const extension = file.name.split('.').pop()?.toLowerCase();
-    switch (extension) {
-      case 'pdf': return 'pi-file-pdf';
-      case 'doc':
-      case 'docx': return 'pi-file-word';
-      case 'txt':
-      case 'md': return 'pi-file';
-      case 'csv': return 'pi-file-excel';
-      default: return 'pi-file';
-    }
-  }
-
-  formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  }
-
-  getStatusIcon(status: FileUpload['status']): string {
-    switch (status) {
-      case 'pending': return 'pi-clock';
-      case 'uploading': return 'pi-spin pi-spinner';
-      case 'success': return 'pi-check-circle';
-      case 'error': return 'pi-times-circle';
-    }
-  }
-
-  getStatusClass(status: FileUpload['status']): string {
-    switch (status) {
-      case 'pending': return 'status-pending';
-      case 'uploading': return 'status-uploading';
-      case 'success': return 'status-success';
-      case 'error': return 'status-error';
-    }
   }
 }

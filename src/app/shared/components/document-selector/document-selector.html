@@ -1,0 +1,44 @@
+@if (isLoading()) {
+  <div class="loading-docs">
+    @for (i of [].constructor(skeletonCount()); track $index) {
+      <p-skeleton height="40px" styleClass="mb-2" />
+    }
+  </div>
+} @else if (!hasDocuments()) {
+  <div class="no-documents">
+    <i class="pi pi-inbox"></i>
+    <p>{{ emptyMessage() }}</p>
+    <a class="upload-link" [routerLink]="uploadRoute()">
+      {{ uploadLinkText() }}
+    </a>
+  </div>
+} @else {
+  <div class="documents-list">
+    @if (showSelectAll()) {
+      <label class="select-all-option">
+        <input
+          type="checkbox"
+          [checked]="allSelected()"
+          (change)="onToggleAll()"
+        />
+        <span>{{ selectAllLabel() }} ({{ documents().length }})</span>
+      </label>
+    }
+
+    <div class="documents-scroll">
+      @for (doc of documents(); track doc.id) {
+        <label class="document-option">
+          <input
+            type="checkbox"
+            [checked]="isSelected(doc.id)"
+            (change)="onToggleDocument(doc.id)"
+          />
+          <i [class]="'pi ' + getDocumentIcon(doc.contentType)"></i>
+          <span class="doc-name" [title]="doc.fileName">
+            {{ doc.fileName }}
+          </span>
+        </label>
+      }
+    </div>
+  </div>
+}
