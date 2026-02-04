@@ -14,7 +14,6 @@ import { SliderModule } from 'primeng/slider';
 import { SelectModule } from 'primeng/select';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
 import { DocumentSelector } from '../../../../shared/components/document-selector/document-selector';
 import { firstValueFrom } from 'rxjs';
 import { QuizService } from '../../../../core/services/quiz';
@@ -59,7 +58,6 @@ const QUESTION_TYPE_OPTIONS: QuestionTypeOption[] = [
     ToastModule,
     DocumentSelector
   ],
-  providers: [MessageService],
   templateUrl: './generate.html',
   styleUrl: './generate.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

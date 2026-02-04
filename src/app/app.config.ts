@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 
 import { routes } from './app.routes';
@@ -12,10 +13,12 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideClientHydration(withEventReplay()),
-    provideAnimations(), 
+    provideAnimations(),
     provideHttpClient(
       withFetch(),
       withInterceptors([authInterceptor])
-    )
+    ),
+    MessageService,
+    ConfirmationService
   ]
 };

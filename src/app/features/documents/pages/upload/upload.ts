@@ -10,7 +10,6 @@ import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
 import { firstValueFrom } from 'rxjs';
 import { DocumentService } from '../../../../core/services/document';
 import { validateFile, formatFileSize, getFileIcon } from '../../../../shared/utils/file.utils';
@@ -25,7 +24,6 @@ import { ToastService } from '../../../../shared/services/toast.service';
 @Component({
   selector: 'app-upload',
   imports: [CommonModule, ButtonModule, ProgressBarModule, ToastModule],
-  providers: [MessageService],
   templateUrl: './upload.html',
   styleUrl: './upload.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

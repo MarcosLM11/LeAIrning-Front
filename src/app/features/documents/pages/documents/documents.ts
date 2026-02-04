@@ -19,7 +19,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { TooltipModule } from 'primeng/tooltip';
 import { InputTextModule } from 'primeng/inputtext';
 import { PaginatorModule } from 'primeng/paginator';
-import { MessageService, ConfirmationService } from 'primeng/api';
+import { ConfirmationService } from 'primeng/api';
 import { firstValueFrom } from 'rxjs';
 import { DocumentService } from '../../../../core/services/document';
 import { Document, DocumentListParams } from '../../../../core/models/document.model';
@@ -62,7 +62,6 @@ const SORT_OPTIONS: SortOption[] = [
     InputTextModule,
     PaginatorModule
   ],
-  providers: [MessageService, ConfirmationService],
   templateUrl: './documents.html',
   styleUrl: './documents.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

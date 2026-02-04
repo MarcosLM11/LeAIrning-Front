@@ -14,7 +14,6 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
 import { DocumentSelector } from '../../../../shared/components/document-selector/document-selector';
 import { firstValueFrom } from 'rxjs';
 import { ChatService } from '../../../../core/services/chat';
@@ -28,7 +27,6 @@ import { ToastService } from '../../../../shared/services/toast.service';
 @Component({
   selector: 'app-chat',
   imports: [CommonModule, FormsModule, ButtonModule, ToastModule, DocumentSelector],
-  providers: [MessageService],
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
