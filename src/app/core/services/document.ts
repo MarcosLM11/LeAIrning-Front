@@ -34,4 +34,10 @@ export class DocumentService {
   delete(documentId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${documentId}`);
   }
+
+  download(documentId: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${documentId}/download`, {
+      responseType: 'blob'
+    });
+  }
 }

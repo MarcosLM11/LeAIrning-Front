@@ -1,51 +1,70 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { ChatRequest, ChatResponse, ChatMessage, Conversation } from '../models/chat.model';
-import { StorageService } from '../../shared/services/storage.service';
+import { Observable, tap, map } from 'rxjs';
+import {
+  ChatRequest,
+  ChatResponse,
+  ChatMessage,
+  Conversation,
+  ConversationCreateRequest,
+  ConversationResponse,
+  ConversationPage
+} from '../models/chat.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
-  private readonly apiUrl = `${environment.apiUrl}/chat`;
-  private readonly CONVERSATIONS_KEY = 'chat_conversations';
+  private readonly chatApiUrl = `${environment.apiUrl}/chat`;
+  private readonly conversationsApiUrl = `${environment.apiUrl}/conversations`;
 
   private http = inject(HttpClient);
-  private storage = inject(StorageService);
 
-  private conversationsSignal = signal<Conversation[]>(this.loadConversations());
+  // Local state for conversations with their messages (messages are kept in memory)
+  private conversationsSignal = signal<Conversation[]>([]);
   conversations = this.conversationsSignal.asReadonly();
 
-  ask(question: string, conversationId?: string): Observable<ChatResponse> {
-    const headers = conversationId
-      ? new HttpHeaders({ 'X-Conversation-Id': conversationId })
-      : new HttpHeaders();
+  /**
+   * Load conversations from backend API.
+   * Call this on component init.
+   */
+  loadConversations(): Observable<Conversation[]> {
+    return this.http.get<ConversationPage>(this.conversationsApiUrl).pipe(
+      map(page => page.content.map(this.toConversation)),
+      tap(conversations => this.conversationsSignal.set(conversations))
+    );
+  }
+
+  /**
+   * Create a new conversation in the backend.
+   */
+  createConversation(title: string, documentIds: string[]): Observable<Conversation> {
+    const request: ConversationCreateRequest = { title, documentIds };
+    return this.http.post<ConversationResponse>(this.conversationsApiUrl, request).pipe(
+      map(this.toConversation),
+      tap(conversation => {
+        this.conversationsSignal.update(convs => [conversation, ...convs]);
+      })
+    );
+  }
+
+  /**
+   * Send a question to the chat API.
+   */
+  ask(question: string, conversationId: string): Observable<ChatResponse> {
+    const headers = new HttpHeaders({ 'X-Conversation-Id': conversationId });
     const request: ChatRequest = { question };
-    return this.http.post<ChatResponse>(`${this.apiUrl}/ask`, request, { headers });
+    return this.http.post<ChatResponse>(`${this.chatApiUrl}/ask`, request, { headers });
   }
 
-  createConversation(title: string, documentIds: string[]): Conversation {
-    const conversation: Conversation = {
-      id: crypto.randomUUID(),
-      title,
-      messages: [],
-      documentIds,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    this.conversationsSignal.update(convs => {
-      const updated = [conversation, ...convs];
-      this.saveConversations(updated);
-      return updated;
-    });
-    return conversation;
-  }
-
+  /**
+   * Add a message to the local conversation state.
+   * Messages are kept in memory only.
+   */
   addMessage(conversationId: string, message: ChatMessage): void {
-    this.conversationsSignal.update(convs => {
-      const updated = convs.map(conv => {
+    this.conversationsSignal.update(convs =>
+      convs.map(conv => {
         if (conv.id === conversationId) {
           return {
             ...conv,
@@ -54,45 +73,65 @@ export class ChatService {
           };
         }
         return conv;
-      });
-      this.saveConversations(updated);
-      return updated;
-    });
+      })
+    );
   }
 
+  /**
+   * Get a conversation by ID from local state.
+   */
   getConversation(conversationId: string): Conversation | undefined {
     return this.conversationsSignal().find(c => c.id === conversationId);
   }
 
-  deleteConversation(conversationId: string): void {
-    this.conversationsSignal.update(convs => {
-      const updated = convs.filter(c => c.id !== conversationId);
-      this.saveConversations(updated);
-      return updated;
-    });
+  /**
+   * Delete a conversation from the backend.
+   */
+  deleteConversation(conversationId: string): Observable<void> {
+    return this.http.delete<void>(`${this.conversationsApiUrl}/${conversationId}`).pipe(
+      tap(() => {
+        this.conversationsSignal.update(convs =>
+          convs.filter(c => c.id !== conversationId)
+        );
+      })
+    );
   }
 
-  clearAllConversations(): void {
+  /**
+   * Update conversation title in the backend.
+   */
+  updateTitle(conversationId: string, title: string): Observable<Conversation> {
+    return this.http.patch<ConversationResponse>(
+      `${this.conversationsApiUrl}/${conversationId}`,
+      { title }
+    ).pipe(
+      map(this.toConversation),
+      tap(updated => {
+        this.conversationsSignal.update(convs =>
+          convs.map(c => c.id === updated.id ? { ...c, title: updated.title } : c)
+        );
+      })
+    );
+  }
+
+  /**
+   * Clear local state (useful for logout).
+   */
+  clearLocalState(): void {
     this.conversationsSignal.set([]);
-    this.saveConversations([]);
   }
 
-  private loadConversations(): Conversation[] {
-    const data = this.storage.get<Conversation[]>(this.CONVERSATIONS_KEY);
-    if (!data) return [];
-
-    return data.map(conv => ({
-      ...conv,
-      createdAt: new Date(conv.createdAt),
-      updatedAt: new Date(conv.updatedAt),
-      messages: conv.messages.map(msg => ({
-        ...msg,
-        timestamp: new Date(msg.timestamp)
-      }))
-    }));
-  }
-
-  private saveConversations(conversations: Conversation[]): void {
-    this.storage.set(this.CONVERSATIONS_KEY, conversations);
+  /**
+   * Convert backend response to client-side model.
+   */
+  private toConversation(response: ConversationResponse): Conversation {
+    return {
+      id: response.id,
+      title: response.title,
+      documentIds: response.documentIds,
+      messages: [], // Messages are not persisted in backend
+      createdAt: new Date(response.createdAt),
+      updatedAt: new Date(response.updatedAt)
+    };
   }
 }

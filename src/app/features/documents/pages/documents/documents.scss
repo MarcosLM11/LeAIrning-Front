@@ -1372,69 +1372,115 @@
 // DETAIL DIALOG
 // ============================================================================
 
-:global(.document-detail-dialog) {
-  .detail-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xl);
-  }
-
-  .detail-icon {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto;
-    border-radius: var(--radius-lg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    i {
-      font-size: 2.5rem;
-      color: white;
+:host ::ng-deep {
+  .document-detail-dialog {
+    &.p-dialog {
+      background: var(--card-bg);
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-2xl);
+      overflow: hidden;
     }
 
-    &.type-pdf { background: linear-gradient(135deg, #ef4444, #dc2626); }
-    &.type-txt,
-    &.type-markdown { background: linear-gradient(135deg, #6b7280, #4b5563); }
-    &.type-doc,
-    &.type-docx { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-    &.type-csv { background: linear-gradient(135deg, #10b981, #059669); }
-  }
+    .p-dialog-header {
+      padding: var(--spacing-lg) var(--spacing-xl);
+      background: var(--bg-main);
+      border-bottom: 2px solid var(--border-color);
 
-  .detail-info {
-    .detail-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: var(--spacing-md) 0;
-      border-bottom: 1px solid var(--border-color);
-
-      &:last-child { border-bottom: none; }
-
-      label {
-        font-size: var(--text-sm);
-        color: var(--text-secondary);
-        font-weight: var(--font-medium);
-      }
-
-      span {
-        font-size: var(--text-sm);
+      .p-dialog-title {
+        font-size: var(--text-lg);
+        font-weight: var(--font-bold);
         color: var(--text-main);
-        font-weight: var(--font-semibold);
-        max-width: 250px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+      }
+
+      .p-dialog-header-close {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-md);
+        color: var(--text-secondary);
+        transition: all var(--transition-base);
+
+        &:hover {
+          background: rgba(239, 68, 68, 0.1);
+          color: var(--error-color);
+        }
+
+        &:active {
+          background: var(--error-color);
+          color: white;
+          transform: scale(0.95);
+        }
       }
     }
-  }
 
-  .detail-actions {
-    display: flex;
-    gap: var(--spacing-md);
-    justify-content: center;
-    flex-wrap: wrap;
+    .p-dialog-content {
+      padding: var(--spacing-xl);
+      background: var(--card-bg);
+    }
   }
+}
+
+.detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.detail-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-primary);
+  box-shadow: var(--shadow-primary);
+
+  i {
+    font-size: 2.5rem;
+    color: white;
+  }
+}
+
+.detail-info {
+  background: var(--bg-main);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) 0;
+    border-bottom: 1px solid var(--border-color);
+
+    &:last-child { border-bottom: none; }
+
+    label {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      font-weight: var(--font-medium);
+    }
+
+    span {
+      font-size: var(--text-sm);
+      color: var(--text-main);
+      font-weight: var(--font-semibold);
+      max-width: 250px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+.detail-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  flex-wrap: wrap;
+  padding-top: var(--spacing-md);
 }
 
 // ============================================================================

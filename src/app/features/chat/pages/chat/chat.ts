@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { DocumentSelector } from '../../../../shared/components/document-selector/document-selector';
@@ -39,6 +39,7 @@ export class Chat implements OnInit, AfterViewChecked {
   private documentService = inject(DocumentService);
   private toast = inject(ToastService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   // Document selection
   readonly documentSelection = new SelectionManager<Document>();
@@ -48,6 +49,8 @@ export class Chat implements OnInit, AfterViewChecked {
   currentConversation = signal<Conversation | null>(null);
   messageText = signal('');
   isLoadingDocs = signal(true);
+  isLoadingConversations = signal(true);
+  isCreatingConversation = signal(false);
   isSending = signal(false);
   showSidebar = signal(true);
 
@@ -61,7 +64,9 @@ export class Chat implements OnInit, AfterViewChecked {
   selectedDocumentIds = computed(() => this.documentSelection.getSelectedIds());
 
   canSend = computed(() =>
-    this.messageText().trim().length > 0 && !this.isSending()
+    this.messageText().trim().length > 0 &&
+    !this.isSending() &&
+    !this.isCreatingConversation()
   );
 
   // Re-export utils for template
@@ -69,7 +74,7 @@ export class Chat implements OnInit, AfterViewChecked {
   formatDate = formatDateTime;
 
   ngOnInit(): void {
-    this.loadDocuments();
+    this.loadData();
   }
 
   ngAfterViewChecked(): void {
@@ -77,6 +82,14 @@ export class Chat implements OnInit, AfterViewChecked {
       this.scrollToBottom();
       this.shouldScrollToBottom = false;
     }
+  }
+
+  private async loadData(): Promise<void> {
+    // Load documents and conversations in parallel
+    await Promise.all([
+      this.loadDocuments(),
+      this.loadConversations()
+    ]);
   }
 
   private async loadDocuments(): Promise<void> {
@@ -87,14 +100,30 @@ export class Chat implements OnInit, AfterViewChecked {
       this.documents.set(docs);
       this.documentSelection.setItems(docs);
 
-      // Select all documents by default
-      if (docs.length > 0) {
+      // Check if there's a documentId in query params
+      const documentIdFromRoute = this.route.snapshot.queryParams['documentId'];
+      if (documentIdFromRoute && docs.some(d => d.id === documentIdFromRoute)) {
+        // Select only the document from the route
+        this.documentSelection.setSelectedIds([documentIdFromRoute]);
+      } else if (docs.length > 0) {
+        // Select all documents by default only if no specific document requested
         this.documentSelection.selectAll();
       }
     } catch {
       this.toast.error('No se pudieron cargar los documentos');
     } finally {
       this.isLoadingDocs.set(false);
+    }
+  }
+
+  private async loadConversations(): Promise<void> {
+    this.isLoadingConversations.set(true);
+    try {
+      await firstValueFrom(this.chatService.loadConversations());
+    } catch {
+      this.toast.error('No se pudieron cargar las conversaciones');
+    } finally {
+      this.isLoadingConversations.set(false);
     }
   }
 
@@ -106,18 +135,24 @@ export class Chat implements OnInit, AfterViewChecked {
     this.documentSelection.toggle(docId);
   }
 
-  startNewConversation(): void {
+  async startNewConversation(): Promise<void> {
     if (this.selectedDocumentIds().length === 0) {
       this.toast.warning('Debes seleccionar al menos un documento para chatear', 'Selecciona documentos');
       return;
     }
 
-    const conversation = this.chatService.createConversation(
-      'Nueva conversación',
-      this.selectedDocumentIds()
-    );
-    this.currentConversation.set(conversation);
-    this.messageText.set('');
+    this.isCreatingConversation.set(true);
+    try {
+      const conversation = await firstValueFrom(
+        this.chatService.createConversation('Nueva conversación', this.selectedDocumentIds())
+      );
+      this.currentConversation.set(conversation);
+      this.messageText.set('');
+    } catch {
+      this.toast.error('No se pudo crear la conversación');
+    } finally {
+      this.isCreatingConversation.set(false);
+    }
   }
 
   selectConversation(conversation: Conversation): void {
@@ -126,30 +161,48 @@ export class Chat implements OnInit, AfterViewChecked {
     this.shouldScrollToBottom = true;
   }
 
-  deleteConversation(conversation: Conversation, event: Event): void {
+  async deleteConversation(conversation: Conversation, event: Event): Promise<void> {
     event.stopPropagation();
-    this.chatService.deleteConversation(conversation.id);
-    if (this.currentConversation()?.id === conversation.id) {
-      this.currentConversation.set(null);
+    try {
+      await firstValueFrom(this.chatService.deleteConversation(conversation.id));
+      if (this.currentConversation()?.id === conversation.id) {
+        this.currentConversation.set(null);
+      }
+    } catch {
+      this.toast.error('No se pudo eliminar la conversación');
     }
   }
 
   async sendMessage(): Promise<void> {
     const text = this.messageText().trim();
-    if (!text || this.isSending()) return;
+    if (!text || this.isSending() || this.isCreatingConversation()) return;
 
     let conversation = this.currentConversation();
 
+    // If no conversation, create one first
     if (!conversation) {
       if (this.selectedDocumentIds().length === 0) {
         this.toast.warning('Debes seleccionar al menos un documento para chatear', 'Selecciona documentos');
         return;
       }
-      const title = text.length > 50 ? `${text.substring(0, 50)}...` : text;
-      conversation = this.chatService.createConversation(title, this.selectedDocumentIds());
-      this.currentConversation.set(conversation);
+
+      this.isCreatingConversation.set(true);
+      try {
+        const title = text.length > 50 ? `${text.substring(0, 50)}...` : text;
+        conversation = await firstValueFrom(
+          this.chatService.createConversation(title, this.selectedDocumentIds())
+        );
+        this.currentConversation.set(conversation);
+      } catch {
+        this.toast.error('No se pudo crear la conversación');
+        this.isCreatingConversation.set(false);
+        return;
+      } finally {
+        this.isCreatingConversation.set(false);
+      }
     }
 
+    // Add user message locally
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: 'user',

@@ -382,4 +382,25 @@ export class Documents implements OnInit {
   goToQuiz(doc: Document): void {
     this.router.navigate(['/quizzes/generate'], { queryParams: { documentId: doc.id } });
   }
+
+  // Download document
+  downloadDocument(doc: Document): void {
+    this.documentService.download(doc.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.fileName;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.toast.success(`"${doc.fileName}" descargado correctamente`, 'Descarga completada');
+      },
+      error: () => this.toast.error('No se pudo descargar el documento')
+    });
+  }
+
+  // View document (placeholder for future implementation)
+  viewDocument(doc: Document): void {
+    this.toast.info('La visualización de documentos estará disponible próximamente', 'Próximamente');
+  }
 }

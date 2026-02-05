@@ -325,20 +325,6 @@
             <span>{{ formatFileSize(doc.size) }}</span>
           </div>
         </div>
-
-        <div class="detail-actions">
-          <p-button
-            label="Chatear"
-            icon="pi pi-comments"
-            (onClick)="goToChat(doc); closeDetailDialog()"
-          />
-          <p-button
-            label="Generar Quiz"
-            icon="pi pi-question-circle"
-            severity="help"
-            (onClick)="goToQuiz(doc); closeDetailDialog()"
-          />
-        </div>
       </div>
     }
   </p-dialog>
@@ -374,8 +360,16 @@
           </div>
 
           <div class="preview-actions">
+            <button class="preview-btn" (click)="viewDocument(doc)">
+              <i class="pi pi-eye"></i>
+              <span>Visualizar</span>
+            </button>
+            <button class="preview-btn" (click)="downloadDocument(doc)">
+              <i class="pi pi-download"></i>
+              <span>Descargar</span>
+            </button>
             <button class="preview-btn" (click)="viewDetails(doc); closeQuickPreview()">
-              <i class="pi pi-external-link"></i>
+              <i class="pi pi-info-circle"></i>
               <span>Ver Detalles</span>
             </button>
             <button class="preview-btn primary" (click)="goToChat(doc)">
