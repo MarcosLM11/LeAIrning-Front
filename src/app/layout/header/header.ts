@@ -70,7 +70,7 @@ export class Header {
 
   goToProfile(): void {
     this.closeMenu();
-    // TODO: Implement navigation to profile
+    this.dialogService.openProfileViewDialog();
   }
 
   goToSettings(): void {

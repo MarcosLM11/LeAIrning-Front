@@ -4,11 +4,12 @@ import { filter } from 'rxjs';
 import { Header } from './layout/header/header';
 import { Sidebar } from './layout/sidebar/sidebar';
 import { ProfileEditDialog } from './shared/components/profile-edit-dialog/profile-edit-dialog';
+import { ProfileViewDialog } from './shared/components/profile-view-dialog/profile-view-dialog';
 import { fadeScaleAnimation } from './shared/animations/route-animations';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Header, Sidebar, ProfileEditDialog],
+  imports: [RouterOutlet, Header, Sidebar, ProfileEditDialog, ProfileViewDialog],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   animations: [fadeScaleAnimation]

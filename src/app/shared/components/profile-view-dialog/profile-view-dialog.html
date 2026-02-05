@@ -1,0 +1,100 @@
+<p-dialog
+  [visible]="visible()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="false"
+  [showHeader]="false"
+  appendTo="body"
+  [style]="{ width: '480px', maxWidth: '95vw' }"
+  [contentStyle]="{ padding: '0', borderRadius: '24px', overflow: 'hidden' }"
+  styleClass="profile-view-dialog"
+>
+  <div class="dialog-container">
+    <!-- Header con gradiente -->
+    <div class="dialog-header">
+      <div class="header-background">
+        <div class="header-pattern"></div>
+      </div>
+      <div class="header-content">
+        <div class="header-text">
+          <h2>Mi Perfil</h2>
+          <p>Tu informacion personal</p>
+        </div>
+        <button 
+          type="button" 
+          class="close-btn" 
+          (click)="closeDialog()"
+          aria-label="Cerrar"
+        >
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+      
+      <!-- Avatar centrado sobre el header -->
+      <div class="avatar-wrapper">
+        <div class="avatar-container">
+          <div class="avatar-placeholder">
+            <span>{{ getUserInitials() }}</span>
+          </div>
+        </div>
+        <div class="avatar-info">
+          <span class="user-name">{{ currentUser()?.name || 'Usuario' }}</span>
+          <span class="user-email">{{ currentUser()?.email || '' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenido de solo lectura -->
+    <div class="profile-content">
+      <!-- Campo: Nombre -->
+      <div class="info-group">
+        <div class="info-label">
+          <i class="pi pi-user"></i>
+          <span>Nombre completo</span>
+        </div>
+        <div class="info-value">
+          {{ currentUser()?.name || 'No especificado' }}
+        </div>
+      </div>
+
+      <!-- Campo: Email -->
+      <div class="info-group">
+        <div class="info-label">
+          <i class="pi pi-envelope"></i>
+          <span>Correo electronico</span>
+        </div>
+        <div class="info-value">
+          {{ currentUser()?.email || 'No especificado' }}
+        </div>
+      </div>
+
+      <!-- Badge de cuenta verificada (opcional) -->
+      <div class="account-status">
+        <div class="status-badge verified">
+          <i class="pi pi-verified"></i>
+          <span>Cuenta verificada</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer con acciones -->
+    <div class="dialog-footer">
+      <button 
+        type="button" 
+        class="btn btn-secondary"
+        (click)="closeDialog()"
+      >
+        Cerrar
+      </button>
+      <button 
+        type="button" 
+        class="btn btn-primary"
+        (click)="openEditDialog()"
+      >
+        <i class="pi pi-pencil"></i>
+        <span>Editar Perfil</span>
+      </button>
+    </div>
+  </div>
+</p-dialog>
