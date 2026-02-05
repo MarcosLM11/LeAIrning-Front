@@ -10,9 +10,11 @@
   height: 72px;
   box-shadow: var(--shadow-sm);
   backdrop-filter: blur(10px);
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: var(--z-sticky);
+  left: 0;
+  right: 0;
+  z-index: var(--z-fixed, 1001);
   transition: all var(--transition-base);
 
   @include max-md {

@@ -1,4 +1,4 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth';
@@ -22,6 +22,9 @@ export class Sidebar {
   // Signal para controlar si el sidebar está colapsado (cerrado)
   isCollapsed = signal(false);
 
+  // Output para notificar al padre cuando cambia el estado
+  collapsedChange = output<boolean>();
+
   // Exponer usuario actual del AuthService
   currentUser = this.authService.currentUser;
 
@@ -39,5 +42,6 @@ export class Sidebar {
   // Método para alternar el estado del sidebar
   toggleSidebar(): void {
     this.isCollapsed.set(!this.isCollapsed());
+    this.collapsedChange.emit(this.isCollapsed());
   }
 }

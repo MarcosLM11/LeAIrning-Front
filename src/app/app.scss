@@ -8,7 +8,7 @@
 .app-body {
   display: flex;
   flex: 1;
-  overflow: hidden;
+  margin-top: 72px; // Compensar el header fijo
 }
 
 .main-content {
@@ -16,4 +16,23 @@
   padding: 2rem;
   overflow-y: auto;
   background-color: var(--surface-ground);
+  margin-left: 260px; // Compensar el ancho del sidebar fijo
+  min-height: calc(100vh - 72px); // Altura mínima para llenar la pantalla
+  transition: margin-left 0.3s ease;
+
+  // Cuando el sidebar está colapsado
+  &.sidebar-collapsed {
+    margin-left: 80px;
+  }
+}
+
+// Responsive: en pantallas pequeñas el sidebar es overlay
+@media (max-width: 1024px) {
+  .main-content {
+    margin-left: 0;
+
+    &.sidebar-collapsed {
+      margin-left: 0;
+    }
+  }
 }

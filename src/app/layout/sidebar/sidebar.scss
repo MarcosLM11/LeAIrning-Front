@@ -8,8 +8,9 @@
   display: flex;
   flex-direction: column;
   transition: all var(--transition-base);
-  position: sticky;
-  top: 0;
+  position: fixed;
+  top: 72px; // Debajo del header
+  left: 0;
   z-index: var(--z-sticky);
   box-shadow: var(--shadow-sm);
 

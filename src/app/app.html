@@ -3,8 +3,8 @@
   <div class="app-container">
     <app-header />
     <div class="app-body">
-      <app-sidebar />
-      <main class="main-content" [@fadeScaleAnimation]="getRouteAnimationData()">
+      <app-sidebar (collapsedChange)="onSidebarCollapsedChange($event)" />
+      <main class="main-content" [class.sidebar-collapsed]="sidebarCollapsed()" [@fadeScaleAnimation]="getRouteAnimationData()">
         <router-outlet />
       </main>
     </div>

@@ -17,6 +17,9 @@ export class App {
   // Signal para controlar si mostramos el layout o no
   showLayout = signal<boolean>(true);
 
+  // Signal para el estado colapsado del sidebar
+  sidebarCollapsed = signal<boolean>(false);
+
   constructor(
     private router: Router,
     private contexts: ChildrenOutletContexts
@@ -34,6 +37,10 @@ export class App {
         const isAuthRoute = event.url.includes('/auth/');
         this.showLayout.set(!isAuthRoute);
       });
+  }
+
+  onSidebarCollapsedChange(collapsed: boolean): void {
+    this.sidebarCollapsed.set(collapsed);
   }
 
   // Helper para las animaciones de ruta
