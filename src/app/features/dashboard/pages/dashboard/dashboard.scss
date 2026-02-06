@@ -55,6 +55,14 @@
     border-color: var(--primary-color);
   }
 
+  &.clickable {
+    cursor: pointer;
+
+    &:active {
+      transform: translateY(-2px);
+    }
+  }
+
   .stat-icon-wrapper {
     width: 56px;
     height: 56px;

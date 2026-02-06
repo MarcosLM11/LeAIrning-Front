@@ -1,4 +1,5 @@
 import { Component, signal, computed, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
 import { HeroSectionComponent, QuickAction } from '../../../../shared/components/hero-section/hero-section';
@@ -10,6 +11,7 @@ import { ChatService } from '../../../../core/services/chat';
 import { Document } from '../../../../core/models/document.model';
 import { formatFileSize, getDocumentIcon } from '../../../../shared/utils/file.utils';
 import { getRelativeTime } from '../../../../shared/utils/date.utils';
+import { firstValueFrom } from 'rxjs';
 
 interface ActivityItem {
   id: string;
@@ -49,6 +51,7 @@ export class Dashboard implements OnInit {
   private authService = inject(AuthService);
   private documentService = inject(DocumentService);
   private chatService = inject(ChatService);
+  private router = inject(Router);
 
   isLoadingActivity = signal(true);
   recentDocuments = signal<Document[]>([]);
@@ -73,9 +76,9 @@ export class Dashboard implements OnInit {
   stats = computed(() => {
     const storageUsed = this.recentDocuments().reduce((acc, doc) => acc + doc.size, 0);
     return [
-      { title: 'Documentos', value: this.totalDocuments(), icon: 'pi-file', color: '#10b981' },
-      { title: 'Chats', value: this.chatService.conversations().length, icon: 'pi-comments', color: '#f59e0b' },
-      { title: 'Almacenamiento', value: formatFileSize(storageUsed), icon: 'pi-database', color: '#8b5cf6' }
+      { title: 'Documentos', value: this.totalDocuments(), icon: 'pi-file', color: '#10b981', route: '/documents' },
+      { title: 'Chats', value: this.chatService.conversations().length, icon: 'pi-comments', color: '#f59e0b', route: '/chat' },
+      { title: 'Almacenamiento', value: formatFileSize(storageUsed), icon: 'pi-database', color: '#8b5cf6', route: null }
     ];
   });
 
@@ -121,10 +124,16 @@ export class Dashboard implements OnInit {
   private async loadData(): Promise<void> {
     this.isLoadingActivity.set(true);
     try {
-      const docsResult = await this.documentService
-        .list({ size: 5, sort: 'createdTimestamp,desc' })
-        .toPromise()
-        .catch(() => null);
+      const [docsResult, _] = await Promise.all([
+        firstValueFrom(this.documentService.list({ page: 0, size: 5, sort: 'createdTimestamp,desc' })).catch(err => {
+          console.error('Error loading documents:', err);
+          return null;
+        }),
+        firstValueFrom(this.chatService.loadConversations()).catch(err => {
+          console.error('Error loading conversations:', err);
+          return null;
+        })
+      ]);
 
       if (docsResult) {
         this.recentDocuments.set(docsResult.content);
@@ -132,6 +141,12 @@ export class Dashboard implements OnInit {
       }
     } finally {
       this.isLoadingActivity.set(false);
+    }
+  }
+
+  navigateTo(route: string | null): void {
+    if (route) {
+      this.router.navigate([route]);
     }
   }
 }
