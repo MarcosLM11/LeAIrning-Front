@@ -15,7 +15,8 @@ import { firstValueFrom } from 'rxjs';
 
 interface ActivityItem {
   id: string;
-  type: string;
+  type: 'document' | 'chat';
+  entityId: string;
   title: string;
   description: string;
   timestamp: Date;
@@ -89,6 +90,7 @@ export class Dashboard implements OnInit {
       activities.push({
         id: `doc-${doc.id}`,
         type: 'document',
+        entityId: doc.id,
         title: 'Documento subido',
         description: doc.fileName,
         timestamp: new Date(),
@@ -101,6 +103,7 @@ export class Dashboard implements OnInit {
       activities.push({
         id: `chat-${conv.id}`,
         type: 'chat',
+        entityId: conv.id,
         title: 'Conversación',
         description: conv.title,
         timestamp: conv.updatedAt,
@@ -147,6 +150,23 @@ export class Dashboard implements OnInit {
   navigateTo(route: string | null): void {
     if (route) {
       this.router.navigate([route]);
+    }
+  }
+
+  onActivityClick(activity: ActivityItem): void {
+    if (activity.type === 'document') {
+      this.router.navigate(['/documents'], {
+        queryParams: {
+          documentId: activity.entityId,
+          action: 'view'
+        }
+      });
+    } else if (activity.type === 'chat') {
+      this.router.navigate(['/chat'], {
+        queryParams: {
+          conversationId: activity.entityId
+        }
+      });
     }
   }
 }

@@ -1,7 +1,7 @@
 @use '../../shared/styles/design-system' as *;
 
 .sidebar {
-  width: 260px;
+  width: 230px;
   height: calc(100vh - 72px); // Altura del viewport menos el header
   background: var(--card-bg);
   border-right: 2px solid var(--border-color);
@@ -355,6 +355,7 @@
 // ============================================================================
 
 @include max-lg {
+
   // Overlay para cerrar el sidebar en mobile
   .sidebar-overlay {
     position: fixed;

@@ -40,7 +40,7 @@
     } @else if (recentActivity().length > 0) {
     <div class="activity-timeline">
       @for (activity of recentActivity(); track activity.id) {
-      <div class="timeline-item">
+      <div class="timeline-item clickable" (click)="onActivityClick(activity)">
         <div class="timeline-icon"
           [style.background]="'linear-gradient(135deg, ' + activity.color + ', ' + activity.color + 'cc)'">
           <i [class]="'pi ' + activity.icon"></i>

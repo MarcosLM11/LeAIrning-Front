@@ -64,7 +64,7 @@ export class Chat implements OnInit, AfterViewChecked {
   hasDocuments = computed(() => this.documents().length > 0);
   allSelected = this.documentSelection.allSelected;
   selectedDocumentIds = computed(() => this.documentSelection.getSelectedIds());
-  
+
   // Computed for backward compatibility and global blocking
   isSending = computed(() => !!this.sendingConversationId());
 
@@ -126,6 +126,14 @@ export class Chat implements OnInit, AfterViewChecked {
     this.isLoadingConversations.set(true);
     try {
       await firstValueFrom(this.chatService.loadConversations());
+
+      const conversationId = this.route.snapshot.queryParams['conversationId'];
+      if (conversationId) {
+        const conv = this.conversations().find(c => c.id === conversationId);
+        if (conv) {
+          this.selectConversation(conv);
+        }
+      }
     } catch {
       this.toast.error('No se pudieron cargar las conversaciones');
     } finally {

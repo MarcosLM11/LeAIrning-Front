@@ -16,7 +16,7 @@
   padding: 2rem;
   overflow-y: auto;
   background-color: var(--surface-ground);
-  margin-left: 260px; // Compensar el ancho del sidebar fijo
+  margin-left: 230px; // Compensar el ancho del sidebar fijo
   min-height: calc(100vh - 72px); // Altura mínima para llenar la pantalla
   transition: margin-left 0.3s ease;
 

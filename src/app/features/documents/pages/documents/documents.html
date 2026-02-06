@@ -22,95 +22,79 @@
   </header>
 
   <!-- Upload Drop Zone -->
-  <div
-    class="upload-zone"
-    [class.drag-over]="isDragOver()"
-    [class.has-files]="hasUploadFiles()"
-    (dragover)="onDragOver($event)"
-    (dragleave)="onDragLeave($event)"
-    (drop)="onDrop($event)"
-  >
-    <input
-      type="file"
-      #fileInput
-      multiple
-      accept=".pdf,.txt,.csv,.doc,.docx,.md"
-      (change)="onFileSelected($event)"
-      hidden
-    />
+  <div class="upload-zone" [class.drag-over]="isDragOver()" [class.has-files]="hasUploadFiles()"
+    (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+    <input type="file" #fileInput multiple accept=".pdf,.txt,.csv,.doc,.docx,.md" (change)="onFileSelected($event)"
+      hidden />
 
     @if (!hasUploadFiles()) {
-      <div class="upload-prompt" (click)="fileInput.click()">
-        <div class="upload-icon-wrapper">
-          <i class="pi pi-cloud-upload"></i>
-        </div>
-        <div class="upload-text">
-          <h3>Arrastra archivos aquí</h3>
-          <p>o haz clic para seleccionar</p>
-        </div>
-        <div class="supported-formats">
-          @for (format of ['PDF', 'TXT', 'CSV', 'DOC', 'DOCX', 'MD']; track format) {
-            <span class="format-badge">{{ format }}</span>
-          }
-        </div>
+    <div class="upload-prompt" (click)="fileInput.click()">
+      <div class="upload-icon-wrapper">
+        <i class="pi pi-cloud-upload"></i>
       </div>
+      <div class="upload-text">
+        <h3>Arrastra archivos aquí</h3>
+        <p>o haz clic para seleccionar</p>
+      </div>
+      <div class="supported-formats">
+        @for (format of ['PDF', 'TXT', 'CSV', 'DOC', 'DOCX', 'MD']; track format) {
+        <span class="format-badge">{{ format }}</span>
+        }
+      </div>
+    </div>
     } @else {
-      <div class="upload-files-list">
-        <div class="upload-header">
-          <span class="files-count">
-            <i class="pi pi-file"></i>
-            {{ uploadFiles().length }} archivo(s)
-          </span>
-          <div class="upload-actions">
-            <button class="btn-add" (click)="fileInput.click()" [disabled]="isUploading()" pTooltip="Añadir más">
-              <i class="pi pi-plus"></i>
-            </button>
-            <button class="btn-clear" (click)="clearUploadFiles()" [disabled]="isUploading()" pTooltip="Limpiar">
-              <i class="pi pi-times"></i>
-            </button>
-          </div>
+    <div class="upload-files-list">
+      <div class="upload-header">
+        <span class="files-count">
+          <i class="pi pi-file"></i>
+          {{ uploadFiles().length }} archivo(s)
+        </span>
+        <div class="upload-actions">
+          <button class="btn-add" (click)="fileInput.click()" [disabled]="isUploading()" pTooltip="Añadir más">
+            <i class="pi pi-plus"></i>
+          </button>
+          <button class="btn-clear" (click)="clearUploadFiles()" [disabled]="isUploading()" pTooltip="Limpiar">
+            <i class="pi pi-times"></i>
+          </button>
         </div>
-
-        <div class="upload-items">
-          @for (fileUpload of uploadFiles(); track $index; let i = $index) {
-            <div class="upload-item" [class]="'status-' + fileUpload.status">
-              <i [class]="'pi ' + getUploadFileIcon(fileUpload.file)"></i>
-              <div class="file-details">
-                <span class="file-name">{{ fileUpload.file.name }}</span>
-                <span class="file-size">{{ formatFileSize(fileUpload.file.size) }}</span>
-                @if (fileUpload.status === 'uploading') {
-                  <p-progressBar [value]="fileUpload.progress" [showValue]="false" />
-                }
-              </div>
-              @if (fileUpload.status === 'pending') {
-                <button class="btn-remove" (click)="removeUploadFile(i)" pTooltip="Eliminar">
-                  <i class="pi pi-times"></i>
-                </button>
-              }
-              @if (fileUpload.status === 'success') {
-                <i class="pi pi-check-circle status-icon success"></i>
-              }
-              @if (fileUpload.status === 'error') {
-                <i class="pi pi-times-circle status-icon error"></i>
-              }
-            </div>
-          }
-        </div>
-
-        <button
-          class="btn-upload-start"
-          [disabled]="!canUpload() || isUploading()"
-          (click)="startUpload()"
-        >
-          @if (isUploading()) {
-            <i class="pi pi-spin pi-spinner"></i>
-            <span>Subiendo... {{ uploadProgress() }}%</span>
-          } @else {
-            <i class="pi pi-upload"></i>
-            <span>Subir Documentos</span>
-          }
-        </button>
       </div>
+
+      <div class="upload-items">
+        @for (fileUpload of uploadFiles(); track $index; let i = $index) {
+        <div class="upload-item" [class]="'status-' + fileUpload.status">
+          <i [class]="'pi ' + getUploadFileIcon(fileUpload.file)"></i>
+          <div class="file-details">
+            <span class="file-name">{{ fileUpload.file.name }}</span>
+            <span class="file-size">{{ formatFileSize(fileUpload.file.size) }}</span>
+            @if (fileUpload.status === 'uploading') {
+            <p-progressBar [value]="fileUpload.progress" [showValue]="false" />
+            }
+          </div>
+          @if (fileUpload.status === 'pending') {
+          <button class="btn-remove" (click)="removeUploadFile(i)" pTooltip="Eliminar">
+            <i class="pi pi-times"></i>
+          </button>
+          }
+          @if (fileUpload.status === 'success') {
+          <i class="pi pi-check-circle status-icon success"></i>
+          }
+          @if (fileUpload.status === 'error') {
+          <i class="pi pi-times-circle status-icon error"></i>
+          }
+        </div>
+        }
+      </div>
+
+      <button class="btn-upload-start" [disabled]="!canUpload() || isUploading()" (click)="startUpload()">
+        @if (isUploading()) {
+        <i class="pi pi-spin pi-spinner"></i>
+        <span>Subiendo... {{ uploadProgress() }}%</span>
+        } @else {
+        <i class="pi pi-upload"></i>
+        <span>Subir Documentos</span>
+        }
+      </button>
+    </div>
     }
   </div>
 
@@ -119,16 +103,12 @@
     <!-- Search -->
     <div class="search-wrapper">
       <i class="pi pi-search"></i>
-      <input
-        type="text"
-        placeholder="Buscar por nombre de archivo..."
-        [ngModel]="searchQuery()"
-        (ngModelChange)="onSearchChange($event)"
-      />
+      <input type="text" placeholder="Buscar por nombre de archivo..." [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchChange($event)" />
       @if (searchQuery()) {
-        <button class="clear-search" (click)="clearSearch()" pTooltip="Limpiar búsqueda">
-          <i class="pi pi-times"></i>
-        </button>
+      <button class="clear-search" (click)="clearSearch()" pTooltip="Limpiar búsqueda">
+        <i class="pi pi-times"></i>
+      </button>
       }
     </div>
 
@@ -138,247 +118,203 @@
         <i class="pi pi-sort-alt"></i>
         Orden
       </span>
-      <p-select
-        [options]="sortOptions"
-        (onChange)="onSortChange($event.value)"
-        optionLabel="label"
-        placeholder="Ordenar por"
-      />
+      <p-select [options]="sortOptions" (onChange)="onSortChange($event.value)" optionLabel="label"
+        placeholder="Ordenar por" />
     </div>
 
     <!-- Bulk Actions -->
     <div class="bulk-actions">
-      <button
-        class="btn-select-mode"
-        [class.active]="isSelectionMode()"
-        (click)="toggleSelectionMode()"
-        pTooltip="Selección múltiple"
-        tooltipPosition="bottom"
-      >
+      <button class="btn-select-mode" [class.active]="isSelectionMode()" (click)="toggleSelectionMode()"
+        pTooltip="Selección múltiple" tooltipPosition="bottom">
         <i class="pi pi-check-square"></i>
       </button>
 
       @if (isSelectionMode() && hasSelection()) {
-        <div class="selection-actions">
-          <span class="selection-count">{{ selectedCount() }}</span>
-          <button class="btn-action danger" (click)="confirmBulkDelete()" pTooltip="Eliminar seleccionados" tooltipPosition="bottom">
-            <i class="pi pi-trash"></i>
-          </button>
-        </div>
+      <div class="selection-actions">
+        <span class="selection-count">{{ selectedCount() }}</span>
+        <button class="btn-action danger" (click)="confirmBulkDelete()" pTooltip="Eliminar seleccionados"
+          tooltipPosition="bottom">
+          <i class="pi pi-trash"></i>
+        </button>
+      </div>
       }
     </div>
   </div>
 
   <!-- Select All Bar -->
   @if (isSelectionMode()) {
-    <div class="select-all-bar">
-      <label class="select-all-checkbox">
-        <input
-          type="checkbox"
-          [checked]="allSelected()"
-          (change)="toggleSelectAll()"
-        />
-        <span>Seleccionar todos los documentos</span>
-      </label>
-      <span class="select-hint">Usa Ctrl+Click para seleccionar varios</span>
-    </div>
+  <div class="select-all-bar">
+    <label class="select-all-checkbox">
+      <input type="checkbox" [checked]="allSelected()" (change)="toggleSelectAll()" />
+      <span>Seleccionar todos los documentos</span>
+    </label>
+    <span class="select-hint">Usa Ctrl+Click para seleccionar varios</span>
+  </div>
   }
 
   <!-- Documents Content -->
   <div class="documents-content">
     @if (isLoading()) {
-      <div class="documents-grid">
-        @for (i of [1, 2, 3, 4, 5, 6]; track i) {
-          <div class="document-card skeleton">
-            <div class="skeleton-icon"></div>
-            <div class="skeleton-text"></div>
-            <div class="skeleton-text short"></div>
-          </div>
-        }
+    <div class="documents-grid">
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+      <div class="document-card skeleton">
+        <div class="skeleton-icon"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-text short"></div>
       </div>
+      }
+    </div>
     } @else if (filteredDocuments().length === 0) {
-      <div class="empty-state">
-        <div class="empty-illustration">
-          <div class="empty-orb">
-            <i class="pi pi-folder-open"></i>
+    <div class="empty-state">
+      <div class="empty-illustration">
+        <div class="empty-orb">
+          <i class="pi pi-folder-open"></i>
+        </div>
+      </div>
+      @if (searchQuery()) {
+      <h3>Sin resultados</h3>
+      <p>No se encontraron documentos que coincidan con "{{ searchQuery() }}"</p>
+      <button class="btn-clear-search" (click)="clearSearch()">
+        Limpiar búsqueda
+      </button>
+      } @else {
+      <h3>No hay documentos</h3>
+      <p>Sube tu primer documento para comenzar</p>
+      }
+    </div>
+    } @else {
+    <div class="documents-grid">
+      @for (doc of filteredDocuments(); track doc.id; let i = $index) {
+      <div class="document-card" [class.selected]="selectedDocuments().has(doc.id)"
+        [style.animation-delay]="(i * 0.05) + 's'"
+        (click)="isSelectionMode() ? toggleDocumentSelection(doc.id) : openQuickPreview(doc, $event)">
+        <!-- Selection Checkbox -->
+        @if (isSelectionMode()) {
+        <div class="card-checkbox">
+          <input type="checkbox" [checked]="selectedDocuments().has(doc.id)" (click)="$event.stopPropagation()"
+            (change)="toggleDocumentSelection(doc.id)" />
+        </div>
+        }
+
+        <!-- Document Type Icon -->
+        <div class="card-icon">
+          <i [class]="'pi ' + getTypeIcon(doc.contentType)"></i>
+        </div>
+
+        <!-- Document Info -->
+        <div class="card-content">
+          <h4 class="card-title" [pTooltip]="doc.fileName">
+            {{ doc.fileName }}
+          </h4>
+          <div class="card-meta">
+            <span class="meta-size">{{ formatFileSize(doc.size) }}</span>
           </div>
         </div>
-        @if (searchQuery()) {
-          <h3>Sin resultados</h3>
-          <p>No se encontraron documentos que coincidan con "{{ searchQuery() }}"</p>
-          <button class="btn-clear-search" (click)="clearSearch()">
-            Limpiar búsqueda
+
+        <!-- Quick Actions -->
+        <div class="card-actions">
+          <button class="action-btn" (click)="viewDetails(doc); $event.stopPropagation()" pTooltip="Ver detalles">
+            <i class="pi pi-info-circle"></i>
           </button>
-        } @else {
-          <h3>No hay documentos</h3>
-          <p>Sube tu primer documento para comenzar</p>
-        }
+          <button class="action-btn primary" (click)="goToChat(doc); $event.stopPropagation()" pTooltip="Chatear">
+            <i class="pi pi-comments"></i>
+          </button>
+          <button class="action-btn danger" (click)="confirmDelete(doc); $event.stopPropagation()" pTooltip="Eliminar">
+            <i class="pi pi-trash"></i>
+          </button>
+        </div>
       </div>
-    } @else {
-      <div class="documents-grid">
-        @for (doc of filteredDocuments(); track doc.id; let i = $index) {
-          <div
-            class="document-card"
-            [class.selected]="selectedDocuments().has(doc.id)"
-            [style.animation-delay]="(i * 0.05) + 's'"
-            (click)="isSelectionMode() ? toggleDocumentSelection(doc.id) : openQuickPreview(doc, $event)"
-          >
-            <!-- Selection Checkbox -->
-            @if (isSelectionMode()) {
-              <div class="card-checkbox">
-                <input
-                  type="checkbox"
-                  [checked]="selectedDocuments().has(doc.id)"
-                  (click)="$event.stopPropagation()"
-                  (change)="toggleDocumentSelection(doc.id)"
-                />
-              </div>
-            }
-
-            <!-- Document Type Icon -->
-            <div class="card-icon">
-              <i [class]="'pi ' + getTypeIcon(doc.contentType)"></i>
-            </div>
-
-            <!-- Document Info -->
-            <div class="card-content">
-              <h4 class="card-title" [pTooltip]="doc.fileName">
-                {{ doc.fileName }}
-              </h4>
-              <div class="card-meta">
-                <span class="meta-size">{{ formatFileSize(doc.size) }}</span>
-              </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="card-actions">
-              <button
-                class="action-btn"
-                (click)="viewDetails(doc); $event.stopPropagation()"
-                pTooltip="Ver detalles"
-              >
-                <i class="pi pi-info-circle"></i>
-              </button>
-              <button
-                class="action-btn primary"
-                (click)="goToChat(doc); $event.stopPropagation()"
-                pTooltip="Chatear"
-              >
-                <i class="pi pi-comments"></i>
-              </button>
-              <button
-                class="action-btn danger"
-                (click)="confirmDelete(doc); $event.stopPropagation()"
-                pTooltip="Eliminar"
-              >
-                <i class="pi pi-trash"></i>
-              </button>
-            </div>
-          </div>
-        }
-      </div>
+      }
+    </div>
     }
   </div>
 
   <!-- Pagination -->
   @if (totalRecords() > pageSize()) {
-    <div class="documents-pagination">
-      <p-paginator
-        [rows]="pageSize()"
-        [totalRecords]="totalRecords()"
-        [first]="currentPage() * pageSize()"
-        (onPageChange)="onPageChange($event)"
-        [rowsPerPageOptions]="[10, 20, 50]"
-        [showCurrentPageReport]="true"
-        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
-      />
-    </div>
+  <div class="documents-pagination">
+    <p-paginator [rows]="pageSize()" [totalRecords]="totalRecords()" [first]="currentPage() * pageSize()"
+      (onPageChange)="onPageChange($event)" [rowsPerPageOptions]="[10, 20, 50]" [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}" />
+  </div>
   }
 
   <!-- Detail Dialog -->
-  <p-dialog
-    header="Detalles del Documento"
-    [(visible)]="showDetailDialog"
-    [modal]="true"
-    [style]="{ width: '500px' }"
-    [draggable]="false"
-    [resizable]="false"
-    styleClass="document-detail-dialog"
-  >
+  <p-dialog header="Detalles del Documento" [(visible)]="showDetailDialog" [modal]="true" [style]="{ width: '500px' }"
+    [draggable]="false" [resizable]="false" styleClass="document-detail-dialog">
     @if (selectedDocument(); as doc) {
-      <div class="detail-content">
-        <div class="detail-icon">
-          <i [class]="'pi ' + getTypeIcon(doc.contentType)"></i>
-        </div>
+    <div class="detail-content">
+      <div class="detail-icon">
+        <i [class]="'pi ' + getTypeIcon(doc.contentType)"></i>
+      </div>
 
-        <div class="detail-info">
-          <div class="detail-row">
-            <label>Nombre:</label>
-            <span>{{ doc.fileName }}</span>
-          </div>
-          <div class="detail-row">
-            <label>Tipo:</label>
-            <span>{{ doc.contentType }}</span>
-          </div>
-          <div class="detail-row">
-            <label>Tamaño:</label>
-            <span>{{ formatFileSize(doc.size) }}</span>
-          </div>
+      <div class="detail-info">
+        <div class="detail-row">
+          <label>Nombre:</label>
+          <span>{{ doc.fileName }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Tipo:</label>
+          <span>{{ doc.contentType }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Tamaño:</label>
+          <span>{{ formatFileSize(doc.size) }}</span>
         </div>
       </div>
+    </div>
     }
   </p-dialog>
 
   <!-- Quick Preview Overlay & Panel -->
   @if (showQuickPreview()) {
-    <div class="quick-preview-overlay" (click)="closeQuickPreview()"></div>
-    <div class="quick-preview-panel">
-      <div class="preview-header">
-        <h3>Vista Rápida</h3>
-        <button class="close-preview" (click)="closeQuickPreview()">
-          <i class="pi pi-times"></i>
-        </button>
+  <div class="quick-preview-overlay" (click)="closeQuickPreview()"></div>
+  <div class="quick-preview-panel">
+    <div class="preview-header">
+      <h3>Vista Rápida</h3>
+      <button class="close-preview" (click)="closeQuickPreview()">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+
+    @if (previewDocument(); as doc) {
+    <div class="preview-content">
+      <div class="preview-icon">
+        <i [class]="'pi ' + getTypeIcon(doc.contentType)"></i>
       </div>
 
-      @if (previewDocument(); as doc) {
-        <div class="preview-content">
-          <div class="preview-icon">
-            <i [class]="'pi ' + getTypeIcon(doc.contentType)"></i>
-          </div>
+      <h4 class="preview-title">{{ doc.fileName }}</h4>
 
-          <h4 class="preview-title">{{ doc.fileName }}</h4>
+      <div class="preview-meta">
+        <span>{{ formatFileSize(doc.size) }}</span>
+      </div>
 
-          <div class="preview-meta">
-            <span>{{ formatFileSize(doc.size) }}</span>
-          </div>
-
-          <div class="preview-details">
-            <div class="detail-item">
-              <i class="pi pi-file"></i>
-              <span>{{ doc.contentType }}</span>
-            </div>
-          </div>
-
-          <div class="preview-actions">
-            <button class="preview-btn" (click)="viewDocument(doc)">
-              <i class="pi pi-eye"></i>
-              <span>Visualizar</span>
-            </button>
-            <button class="preview-btn" (click)="downloadDocument(doc)">
-              <i class="pi pi-download"></i>
-              <span>Descargar</span>
-            </button>
-            <button class="preview-btn" (click)="viewDetails(doc); closeQuickPreview()">
-              <i class="pi pi-info-circle"></i>
-              <span>Ver Detalles</span>
-            </button>
-            <button class="preview-btn primary" (click)="goToChat(doc)">
-              <i class="pi pi-comments"></i>
-              <span>Chatear</span>
-            </button>
-          </div>
+      <div class="preview-details">
+        <div class="detail-item">
+          <i class="pi pi-file"></i>
+          <span>{{ doc.contentType }}</span>
         </div>
-      }
+      </div>
+
+      <div class="preview-actions">
+        <button class="preview-btn" (click)="viewDocument(doc)">
+          <i class="pi pi-eye"></i>
+          <span>Visualizar</span>
+        </button>
+        <button class="preview-btn" (click)="downloadDocument(doc)">
+          <i class="pi pi-download"></i>
+          <span>Descargar</span>
+        </button>
+        <button class="preview-btn" (click)="viewDetails(doc)">
+          <i class="pi pi-info-circle"></i>
+          <span>Ver Detalles</span>
+        </button>
+        <button class="preview-btn primary" (click)="goToChat(doc)">
+          <i class="pi pi-comments"></i>
+          <span>Chatear</span>
+        </button>
+      </div>
     </div>
+    }
+  </div>
   }
 </div>

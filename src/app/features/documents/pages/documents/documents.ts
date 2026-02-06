@@ -7,7 +7,7 @@ import {
   ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
@@ -71,6 +71,7 @@ export class Documents implements OnInit {
   private toast = inject(ToastService);
   private confirmationService = inject(ConfirmationService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   // Document list state
   documents = signal<Document[]>([]);
@@ -148,6 +149,15 @@ export class Documents implements OnInit {
         this.documents.set(response.content);
         this.totalRecords.set(response.totalElements);
         if (showLoading) this.isLoading.set(false);
+
+        // Check for deep link
+        const queryParams = this.route.snapshot.queryParams;
+        if (queryParams['action'] === 'view' && queryParams['documentId']) {
+          const doc = this.documents().find(d => d.id === queryParams['documentId']);
+          if (doc) {
+            this.openQuickPreview(doc);
+          }
+        }
       },
       error: () => {
         this.toast.error('No se pudieron cargar los documentos');
@@ -235,8 +245,10 @@ export class Documents implements OnInit {
   }
 
   // Quick preview
-  openQuickPreview(doc: Document, event: Event): void {
-    event.stopPropagation();
+  openQuickPreview(doc: Document, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
     this.previewDocument.set(doc);
     this.showQuickPreview.set(true);
   }

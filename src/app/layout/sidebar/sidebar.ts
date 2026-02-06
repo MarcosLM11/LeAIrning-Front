@@ -36,7 +36,7 @@ export class Sidebar {
     { label: 'Summaries', icon: 'pi pi-book', route: '/summaries' },
     { label: 'Podcasts', icon: 'pi pi-microphone', route: '/podcasts' },
     { label: 'Quizzes', icon: 'pi pi-question-circle', route: '/quizzes/generate' },
-    { label: 'Search', icon: 'pi pi-search', route: '/search' },
+
   ];
 
   // Método para alternar el estado del sidebar
