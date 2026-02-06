@@ -15,6 +15,14 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
+// Response DTO from backend API for messages
+export interface ChatMessageResponse {
+  id: string;
+  role: string;
+  content: string;
+  timestamp: string;
+}
+
 // Request DTOs for backend API
 export interface ConversationCreateRequest {
   title: string;
@@ -42,6 +50,7 @@ export interface Conversation {
   documentIds: string[];
   createdAt: Date;
   updatedAt: Date;
+  messagesLoaded?: boolean; // Flag to track if messages have been loaded from backend
 }
 
 // Paginated response from backend

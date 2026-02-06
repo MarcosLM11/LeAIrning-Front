@@ -5,6 +5,7 @@ import {
   ChatRequest,
   ChatResponse,
   ChatMessage,
+  ChatMessageResponse,
   Conversation,
   ConversationCreateRequest,
   ConversationResponse,
@@ -21,19 +22,66 @@ export class ChatService {
 
   private http = inject(HttpClient);
 
-  // Local state for conversations with their messages (messages are kept in memory)
+  // Local state for conversations with their messages
   private conversationsSignal = signal<Conversation[]>([]);
   conversations = this.conversationsSignal.asReadonly();
 
   /**
    * Load conversations from backend API.
-   * Call this on component init.
+   * Preserves existing messages for conversations that are already loaded.
    */
   loadConversations(): Observable<Conversation[]> {
     return this.http.get<ConversationPage>(this.conversationsApiUrl).pipe(
-      map(page => page.content.map(this.toConversation)),
+      map(page => this.mergeConversations(page.content)),
       tap(conversations => this.conversationsSignal.set(conversations))
     );
+  }
+
+  /**
+   * Merge new conversation data from backend with existing local state.
+   * Preserves messages that were already loaded.
+   */
+  private mergeConversations(responses: ConversationResponse[]): Conversation[] {
+    const existingConversations = this.conversationsSignal();
+    const existingMap = new Map(existingConversations.map(c => [c.id, c]));
+
+    return responses.map(response => {
+      const existing = existingMap.get(response.id);
+      if (existing) {
+        // Preserve messages and messagesLoaded flag from existing conversation
+        return {
+          ...this.toConversation(response),
+          messages: existing.messages,
+          messagesLoaded: existing.messagesLoaded
+        };
+      }
+      return this.toConversation(response);
+    });
+  }
+
+  /**
+   * Load messages for a conversation from the backend.
+   */
+  loadMessages(conversationId: string): Observable<ChatMessage[]> {
+    return this.http
+      .get<ChatMessageResponse[]>(`${this.conversationsApiUrl}/${conversationId}/messages`)
+      .pipe(
+        map(responses => responses.map(this.toChatMessage)),
+        tap(messages => {
+          this.conversationsSignal.update(convs =>
+            convs.map(conv => {
+              if (conv.id === conversationId) {
+                return {
+                  ...conv,
+                  messages,
+                  messagesLoaded: true
+                };
+              }
+              return conv;
+            })
+          );
+        })
+      );
   }
 
   /**
@@ -42,7 +90,7 @@ export class ChatService {
   createConversation(title: string, documentIds: string[]): Observable<Conversation> {
     const request: ConversationCreateRequest = { title, documentIds };
     return this.http.post<ConversationResponse>(this.conversationsApiUrl, request).pipe(
-      map(this.toConversation),
+      map(response => ({ ...this.toConversation(response), messagesLoaded: true })),
       tap(conversation => {
         this.conversationsSignal.update(convs => [conversation, ...convs]);
       })
@@ -60,7 +108,6 @@ export class ChatService {
 
   /**
    * Add a message to the local conversation state.
-   * Messages are kept in memory only.
    */
   addMessage(conversationId: string, message: ChatMessage): void {
     this.conversationsSignal.update(convs =>
@@ -129,9 +176,22 @@ export class ChatService {
       id: response.id,
       title: response.title,
       documentIds: response.documentIds,
-      messages: [], // Messages are not persisted in backend
+      messages: [],
       createdAt: new Date(response.createdAt),
-      updatedAt: new Date(response.updatedAt)
+      updatedAt: new Date(response.updatedAt),
+      messagesLoaded: false
+    };
+  }
+
+  /**
+   * Convert backend message response to client-side model.
+   */
+  private toChatMessage(response: ChatMessageResponse): ChatMessage {
+    return {
+      id: response.id,
+      role: response.role as 'user' | 'assistant',
+      content: response.content,
+      timestamp: new Date(response.timestamp)
     };
   }
 }

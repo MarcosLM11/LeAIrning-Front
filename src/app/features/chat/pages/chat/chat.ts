@@ -50,8 +50,10 @@ export class Chat implements OnInit, AfterViewChecked {
   messageText = signal('');
   isLoadingDocs = signal(true);
   isLoadingConversations = signal(true);
+  isLoadingMessages = signal(false);
   isCreatingConversation = signal(false);
-  isSending = signal(false);
+  // Tracks which conversation is currently waiting for a response
+  sendingConversationId = signal<string | null>(null);
   showSidebar = signal(true);
 
   private shouldScrollToBottom = false;
@@ -62,11 +64,15 @@ export class Chat implements OnInit, AfterViewChecked {
   hasDocuments = computed(() => this.documents().length > 0);
   allSelected = this.documentSelection.allSelected;
   selectedDocumentIds = computed(() => this.documentSelection.getSelectedIds());
+  
+  // Computed for backward compatibility and global blocking
+  isSending = computed(() => !!this.sendingConversationId());
 
   canSend = computed(() =>
     this.messageText().trim().length > 0 &&
     !this.isSending() &&
-    !this.isCreatingConversation()
+    !this.isCreatingConversation() &&
+    !this.isLoadingMessages()
   );
 
   // Re-export utils for template
@@ -135,30 +141,40 @@ export class Chat implements OnInit, AfterViewChecked {
     this.documentSelection.toggle(docId);
   }
 
-  async startNewConversation(): Promise<void> {
-    if (this.selectedDocumentIds().length === 0) {
-      this.toast.warning('Debes seleccionar al menos un documento para chatear', 'Selecciona documentos');
-      return;
-    }
-
-    this.isCreatingConversation.set(true);
-    try {
-      const conversation = await firstValueFrom(
-        this.chatService.createConversation('Nueva conversación', this.selectedDocumentIds())
-      );
-      this.currentConversation.set(conversation);
-      this.messageText.set('');
-    } catch {
-      this.toast.error('No se pudo crear la conversación');
-    } finally {
-      this.isCreatingConversation.set(false);
-    }
+  /**
+   * Prepares for a new conversation by clearing the current one.
+   * The conversation will be created when the user sends the first message,
+   * using that message as the title.
+   */
+  startNewConversation(): void {
+    this.currentConversation.set(null);
+    this.messageText.set('');
   }
 
-  selectConversation(conversation: Conversation): void {
+  async selectConversation(conversation: Conversation): Promise<void> {
     this.currentConversation.set(conversation);
     this.documentSelection.setSelectedIds(conversation.documentIds);
+
+    // Load messages from backend if not already loaded
+    if (!conversation.messagesLoaded) {
+      await this.loadMessagesForConversation(conversation.id);
+    }
+
     this.shouldScrollToBottom = true;
+  }
+
+  private async loadMessagesForConversation(conversationId: string): Promise<void> {
+    this.isLoadingMessages.set(true);
+    try {
+      await firstValueFrom(this.chatService.loadMessages(conversationId));
+      // Refresh current conversation to get updated messages
+      this.refreshCurrentConversation(conversationId);
+    } catch {
+      this.toast.error('No se pudieron cargar los mensajes');
+    } finally {
+      this.isLoadingMessages.set(false);
+      this.shouldScrollToBottom = true;
+    }
   }
 
   async deleteConversation(conversation: Conversation, event: Event): Promise<void> {
@@ -175,7 +191,7 @@ export class Chat implements OnInit, AfterViewChecked {
 
   async sendMessage(): Promise<void> {
     const text = this.messageText().trim();
-    if (!text || this.isSending() || this.isCreatingConversation()) return;
+    if (!text || this.isSending() || this.isCreatingConversation() || this.isLoadingMessages()) return;
 
     let conversation = this.currentConversation();
 
@@ -214,7 +230,7 @@ export class Chat implements OnInit, AfterViewChecked {
     this.refreshCurrentConversation(conversation.id);
     this.messageText.set('');
     this.shouldScrollToBottom = true;
-    this.isSending.set(true);
+    this.sendingConversationId.set(conversation.id);
 
     try {
       const response = await firstValueFrom(this.chatService.ask(text, conversation.id));
@@ -232,12 +248,15 @@ export class Chat implements OnInit, AfterViewChecked {
     } catch {
       this.toast.error('No se pudo enviar el mensaje. Inténtalo de nuevo.');
     } finally {
-      this.isSending.set(false);
+      this.sendingConversationId.set(null);
     }
   }
 
   private refreshCurrentConversation(conversationId: string): void {
-    this.currentConversation.set(this.chatService.getConversation(conversationId) ?? null);
+    // Only update if the user is still viewing the same conversation
+    if (this.currentConversation()?.id === conversationId) {
+      this.currentConversation.set(this.chatService.getConversation(conversationId) ?? null);
+    }
   }
 
   onKeyDown(event: KeyboardEvent): void {
