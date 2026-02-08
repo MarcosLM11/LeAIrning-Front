@@ -7,31 +7,19 @@ import {
   OnInit
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
-import { SliderModule } from 'primeng/slider';
-import { SelectModule } from 'primeng/select';
-import { CheckboxModule } from 'primeng/checkbox';
 import { ToastModule } from 'primeng/toast';
-import { DocumentSelector } from '../../../../shared/components/document-selector/document-selector';
 import { firstValueFrom } from 'rxjs';
 import { QuizService } from '../../../../core/services/quiz';
 import { DocumentService } from '../../../../core/services/document';
 import { Document } from '../../../../core/models/document.model';
-import { Quiz, GenerateQuizRequest, QuestionType, DifficultyLevel } from '../../../../core/models/quiz.model';
-import { SelectionManager } from '../../../../shared/utils/selection.utils';
+import { Quiz, DifficultyLevel } from '../../../../core/models/quiz.model';
 import { ToastService } from '../../../../shared/services/toast.service';
 
 interface DifficultyOption {
   label: string;
   value: DifficultyLevel;
-}
-
-interface QuestionTypeOption {
-  label: string;
-  value: QuestionType;
-  icon: string;
 }
 
 const DIFFICULTY_OPTIONS: DifficultyOption[] = [
@@ -40,23 +28,12 @@ const DIFFICULTY_OPTIONS: DifficultyOption[] = [
   { label: 'Difícil', value: 'HARD' }
 ];
 
-const QUESTION_TYPE_OPTIONS: QuestionTypeOption[] = [
-  { label: 'Opción múltiple', value: 'MULTIPLE_CHOICE', icon: 'pi-list' },
-  { label: 'Verdadero/Falso', value: 'TRUE_FALSE', icon: 'pi-check-square' },
-  { label: 'Respuesta corta', value: 'SHORT_ANSWER', icon: 'pi-pencil' }
-];
-
 @Component({
   selector: 'app-generate-quiz',
   imports: [
     CommonModule,
-    FormsModule,
     ButtonModule,
-    SliderModule,
-    SelectModule,
-    CheckboxModule,
-    ToastModule,
-    DocumentSelector
+    ToastModule
   ],
   templateUrl: './generate.html',
   styleUrl: './generate.scss',
@@ -67,15 +44,15 @@ export class Generate implements OnInit {
   private documentService = inject(DocumentService);
   private toast = inject(ToastService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
-  // Document selection
-  readonly documentSelection = new SelectionManager<Document>();
+  // Document selection (single)
+  documents = signal<Document[]>([]);
+  selectedDocumentId = signal<string | null>(null);
 
   // Quiz configuration
-  documents = signal<Document[]>([]);
   numberOfQuestions = signal(10);
   selectedDifficulty = signal<DifficultyLevel>('MEDIUM');
-  selectedTypes = signal<QuestionType[]>(['MULTIPLE_CHOICE']);
 
   // Loading states
   isLoadingDocs = signal(true);
@@ -84,22 +61,17 @@ export class Generate implements OnInit {
   // Quiz state
   generatedQuiz = signal<Quiz | null>(null);
   currentQuestionIndex = signal(0);
-  userAnswers = signal<Record<string, string>>({});
+  answerRevealed = signal(false);
+  selfAssessments = signal<Record<number, boolean>>({});
   showResults = signal(false);
 
   // Options
   readonly difficultyOptions = DIFFICULTY_OPTIONS;
-  readonly questionTypeOptions = QUESTION_TYPE_OPTIONS;
 
-  // Computed from selection manager
   hasDocuments = computed(() => this.documents().length > 0);
-  allSelected = this.documentSelection.allSelected;
-  selectedDocumentIds = computed(() => this.documentSelection.getSelectedIds());
 
   canGenerate = computed(() =>
-    this.selectedDocumentIds().length > 0 &&
-    this.selectedTypes().length > 0 &&
-    !this.isGenerating()
+    this.selectedDocumentId() !== null && !this.isGenerating()
   );
 
   currentQuestion = computed(() => {
@@ -112,12 +84,15 @@ export class Generate implements OnInit {
     return quiz ? this.currentQuestionIndex() >= quiz.questions.length - 1 : false;
   });
 
+  isCurrentAssessed = computed(() => {
+    return this.selfAssessments()[this.currentQuestionIndex()] !== undefined;
+  });
+
   quizScore = computed(() => {
     const quiz = this.generatedQuiz();
-    const answers = this.userAnswers();
+    const assessments = this.selfAssessments();
     if (!quiz) return { correct: 0, total: 0, percentage: 0 };
-
-    const correct = quiz.questions.filter(q => answers[q.id] === q.correctAnswer).length;
+    const correct = Object.values(assessments).filter(v => v).length;
     return {
       correct,
       total: quiz.questions.length,
@@ -133,9 +108,11 @@ export class Generate implements OnInit {
     this.isLoadingDocs.set(true);
     try {
       const response = await firstValueFrom(this.documentService.list({ size: 100 }));
-      const docs = response?.content ?? [];
-      this.documents.set(docs);
-      this.documentSelection.setItems(docs);
+      this.documents.set(response?.content ?? []);
+      const docIdParam = this.route.snapshot.queryParamMap.get('documentId');
+      if (docIdParam) {
+        this.selectedDocumentId.set(docIdParam);
+      }
     } catch {
       this.toast.error('No se pudieron cargar los documentos');
     } finally {
@@ -143,43 +120,20 @@ export class Generate implements OnInit {
     }
   }
 
-  toggleSelectAll(): void {
-    this.documentSelection.toggleAll();
-  }
-
-  toggleDocument(docId: string): void {
-    this.documentSelection.toggle(docId);
-  }
-
-  toggleQuestionType(type: QuestionType): void {
-    this.selectedTypes.update(types => {
-      if (types.includes(type)) {
-        return types.length > 1 ? types.filter(t => t !== type) : types;
-      }
-      return [...types, type];
-    });
-  }
-
-  isTypeSelected(type: QuestionType): boolean {
-    return this.selectedTypes().includes(type);
+  selectDocument(docId: string): void {
+    this.selectedDocumentId.set(docId);
   }
 
   async generateQuiz(): Promise<void> {
-    if (!this.canGenerate()) return;
-
+    const docId = this.selectedDocumentId();
+    if (!docId || this.isGenerating()) return;
     this.isGenerating.set(true);
     try {
-      const request: GenerateQuizRequest = {
-        documentIds: this.selectedDocumentIds(),
-        numberOfQuestions: this.numberOfQuestions(),
-        questionTypes: this.selectedTypes(),
-        difficulty: this.selectedDifficulty()
-      };
-
-      const quiz = await firstValueFrom(this.quizService.generate(request));
+      const quiz = await firstValueFrom(
+        this.quizService.generate(docId, this.numberOfQuestions(), this.selectedDifficulty())
+      );
       if (quiz) {
         this.generatedQuiz.set(quiz);
-        this.quizService.saveQuiz(quiz);
         this.resetQuizState();
         this.toast.success(`Se han generado ${quiz.questions.length} preguntas`, 'Quiz generado');
       }
@@ -192,28 +146,46 @@ export class Generate implements OnInit {
 
   private resetQuizState(): void {
     this.currentQuestionIndex.set(0);
-    this.userAnswers.set({});
+    this.answerRevealed.set(false);
+    this.selfAssessments.set({});
     this.showResults.set(false);
   }
 
-  selectAnswer(questionId: string, answer: string): void {
-    this.userAnswers.update(answers => ({ ...answers, [questionId]: answer }));
+  revealAnswer(): void {
+    this.answerRevealed.set(true);
   }
 
-  getSelectedAnswer(questionId: string): string | undefined {
-    return this.userAnswers()[questionId];
+  markCorrect(): void {
+    this.assess(true);
+  }
+
+  markIncorrect(): void {
+    this.assess(false);
+  }
+
+  private assess(correct: boolean): void {
+    const index = this.currentQuestionIndex();
+    this.selfAssessments.update(a => ({ ...a, [index]: correct }));
+    this.answerRevealed.set(false);
+    if (!this.isLastQuestion()) {
+      this.currentQuestionIndex.update(i => i + 1);
+    } else {
+      this.showResults.set(true);
+    }
   }
 
   nextQuestion(): void {
     const quiz = this.generatedQuiz();
     if (quiz && this.currentQuestionIndex() < quiz.questions.length - 1) {
       this.currentQuestionIndex.update(i => i + 1);
+      this.answerRevealed.set(false);
     }
   }
 
   previousQuestion(): void {
     if (this.currentQuestionIndex() > 0) {
       this.currentQuestionIndex.update(i => i - 1);
+      this.answerRevealed.set(false);
     }
   }
 
@@ -232,18 +204,5 @@ export class Generate implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/dashboard']);
-  }
-
-  isAnswerCorrect(questionId: string, answer: string): boolean {
-    const quiz = this.generatedQuiz();
-    if (!quiz || !this.showResults()) return false;
-    return quiz.questions.find(q => q.id === questionId)?.correctAnswer === answer;
-  }
-
-  isAnswerIncorrect(questionId: string, answer: string): boolean {
-    const quiz = this.generatedQuiz();
-    const userAnswer = this.userAnswers()[questionId];
-    if (!quiz || !this.showResults() || userAnswer !== answer) return false;
-    return quiz.questions.find(q => q.id === questionId)?.correctAnswer !== answer;
   }
 }

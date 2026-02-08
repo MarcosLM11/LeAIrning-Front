@@ -33,8 +33,6 @@ export class Sidebar {
     { label: 'Dashboard', icon: 'pi pi-home', route: '/dashboard' },
     { label: 'Documents', icon: 'pi pi-file', route: '/documents' },
     { label: 'Chat', icon: 'pi pi-comments', route: '/chat' },
-    { label: 'Summaries', icon: 'pi pi-book', route: '/summaries' },
-    { label: 'Podcasts', icon: 'pi pi-microphone', route: '/podcasts' },
     { label: 'Quizzes', icon: 'pi pi-question-circle', route: '/quizzes/generate' },
 
   ];
