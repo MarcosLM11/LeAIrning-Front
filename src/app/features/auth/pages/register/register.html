@@ -196,12 +196,16 @@
                 <i class="pi pi-lock"></i>
                 Contraseña
               </label>
-              <p-password 
+              <p-password
                 id="password"
                 formControlName="password"
                 placeholder="••••••••"
                 [toggleMask]="true"
                 [feedback]="true"
+                promptLabel="Introduce una contraseña"
+                weakLabel="Débil"
+                mediumLabel="Media"
+                strongLabel="Fuerte"
                 styleClass="w-full"
                 inputStyleClass="w-full"
                 [class.error]="passwordControl?.invalid && passwordControl?.touched"

@@ -298,6 +298,11 @@
     z-index: 10;
   }
 
+  // Move success icon left when inside a password field to avoid overlapping the toggle icon
+  p-password ~ .success-icon {
+    right: 3rem;
+  }
+
   .error-message {
     display: flex;
     align-items: center;
@@ -362,19 +367,72 @@
 
   .p-password {
     width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    position: relative;
 
-    input {
+    .p-password-input {
       padding-right: 3rem;
     }
 
-    .p-password-toggle-icon {
+    .p-password-mask-icon,
+    .p-password-unmask-icon {
+      position: absolute;
       right: 1rem;
+      top: 0.9375rem;
       color: var(--text-secondary);
       cursor: pointer;
       transition: color 0.2s ease;
+      width: 1.25rem;
+      height: 1.25rem;
 
       &:hover {
         color: var(--primary-color);
+      }
+    }
+
+    .p-password-overlay {
+      position: relative !important;
+      top: auto !important;
+      inset-inline-start: auto !important;
+      width: 100%;
+      min-width: unset !important;
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      margin-top: 0.5rem;
+
+      .p-password-meter {
+        height: 6px;
+        border-radius: 3px;
+        background: var(--border-color);
+        overflow: hidden;
+      }
+
+      .p-password-meter-label {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.3s ease, background 0.3s ease;
+
+        &.p-password-meter-weak {
+          background: var(--error-color);
+        }
+
+        &.p-password-meter-medium {
+          background: var(--warning-color, #f59e0b);
+        }
+
+        &.p-password-meter-strong {
+          background: var(--success-color);
+        }
+      }
+
+      .p-password-meter-text {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-top: 0.5rem;
       }
     }
   }
