@@ -6,9 +6,8 @@ import {
   ChangeDetectionStrategy,
   OnInit
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { firstValueFrom } from 'rxjs';
 import { QuizService } from '../../../../core/services/quiz';
@@ -31,8 +30,7 @@ const DIFFICULTY_OPTIONS: DifficultyOption[] = [
 @Component({
   selector: 'app-generate-quiz',
   imports: [
-    CommonModule,
-    ButtonModule,
+    DecimalPipe,
     ToastModule
   ],
   templateUrl: './generate.html',
