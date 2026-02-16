@@ -2,395 +2,361 @@
 
 <div class="generate-container">
   @if (!generatedQuiz()) {
-    <!-- Configuration View -->
-    <header class="generate-header">
-      <button class="back-btn" (click)="goBack()" aria-label="Volver al dashboard">
-        <i class="pi pi-arrow-left"></i>
-        <span>Volver</span>
-      </button>
-      <div class="header-content">
-        <div class="header-icon-wrapper">
-          <div class="header-icon">
-            <i class="pi pi-question-circle"></i>
+  <!-- Configuration View -->
+  <header class="generate-header">
+
+    <div class="header-content">
+      <div class="header-icon-wrapper">
+        <div class="header-icon">
+          <i class="pi pi-question-circle"></i>
+        </div>
+      </div>
+      <div class="header-text">
+        <h1>Generar Quiz</h1>
+        <p>Pon a prueba tu conocimiento con preguntas generadas por IA a partir de tus documentos</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="config-grid">
+    <!-- Document Selection (single) -->
+    <section class="config-section documents-section" aria-labelledby="doc-section-title">
+      <div class="section-header">
+        <div class="section-icon">
+          <i class="pi pi-folder"></i>
+        </div>
+        <div>
+          <h2 id="doc-section-title">Seleccionar Documento</h2>
+          <p class="section-subtitle">Elige el material de estudio</p>
+        </div>
+      </div>
+
+      @if (isLoadingDocs()) {
+      <div class="loading-docs">
+        @for (i of [1, 2, 3]; track i) {
+        <div class="skeleton-item"></div>
+        }
+      </div>
+      } @else if (!hasDocuments()) {
+      <div class="no-documents">
+        <div class="empty-icon-wrapper">
+          <i class="pi pi-cloud-upload"></i>
+        </div>
+        <h3>Sin documentos</h3>
+        <p>Sube tus apuntes o materiales para generar un quiz personalizado</p>
+        <a class="upload-link" routerLink="/documents/upload">
+          <i class="pi pi-plus-circle"></i>
+          Subir documentos
+        </a>
+      </div>
+      } @else {
+      <div class="documents-list">
+        <div class="documents-scroll" role="radiogroup" aria-label="Documentos disponibles">
+          @for (doc of documents(); track doc.id) {
+          <label class="document-option" [class.selected]="selectedDocumentId() === doc.id">
+            <input type="radio" name="document" [checked]="selectedDocumentId() === doc.id"
+              (change)="selectDocument(doc.id)" class="visually-hidden" />
+            <div class="doc-radio">
+              <div class="doc-radio-inner"></div>
+            </div>
+            <div class="doc-icon">
+              <i class="pi pi-file"></i>
+            </div>
+            <span class="doc-name" [title]="doc.fileName">
+              {{ doc.fileName }}
+            </span>
+            @if (selectedDocumentId() === doc.id) {
+            <i class="pi pi-check-circle doc-check"></i>
+            }
+          </label>
+          }
+        </div>
+      </div>
+      }
+    </section>
+
+    <!-- Quiz Configuration -->
+    <section class="config-section settings-section" aria-labelledby="config-section-title">
+      <div class="section-header">
+        <div class="section-icon">
+          <i class="pi pi-sliders-h"></i>
+        </div>
+        <div>
+          <h2 id="config-section-title">Configuración</h2>
+          <p class="section-subtitle">Personaliza tu quiz</p>
+        </div>
+      </div>
+
+      <div class="config-options">
+        <!-- Number of Questions -->
+        <div class="config-option">
+          <div class="option-header">
+            <span class="option-label">
+              <i class="pi pi-list"></i>
+              Número de preguntas
+            </span>
+            <span class="option-value-badge">{{ numberOfQuestions() }}</span>
+          </div>
+          <div class="slider-wrapper">
+            <input type="range" class="questions-slider" [value]="numberOfQuestions()"
+              (input)="numberOfQuestions.set(+$any($event.target).value)" min="5" max="30" step="5"
+              aria-label="Número de preguntas" />
+            <div class="slider-labels">
+              <span>5</span>
+              <span>10</span>
+              <span>15</span>
+              <span>20</span>
+              <span>25</span>
+              <span>30</span>
+            </div>
           </div>
         </div>
-        <div class="header-text">
-          <h1>Generar Quiz</h1>
-          <p>Pon a prueba tu conocimiento con preguntas generadas por IA a partir de tus documentos</p>
+
+        <!-- Difficulty -->
+        <div class="config-option">
+          <div class="option-header">
+            <span class="option-label">
+              <i class="pi pi-signal"></i>
+              Nivel de dificultad
+            </span>
+          </div>
+          <div class="difficulty-options" role="radiogroup" aria-label="Dificultad">
+            @for (option of difficultyOptions; track option.value) {
+            <button class="difficulty-btn" [class.selected]="selectedDifficulty() === option.value"
+              [class.easy]="option.value === 'EASY'" [class.medium]="option.value === 'MEDIUM'"
+              [class.hard]="option.value === 'HARD'" (click)="selectedDifficulty.set(option.value)" role="radio"
+              [attr.aria-checked]="selectedDifficulty() === option.value">
+              <span class="difficulty-icon">
+                @if (option.value === 'EASY') {
+                <i class="pi pi-star"></i>
+                } @else if (option.value === 'MEDIUM') {
+                <i class="pi pi-star-fill"></i>
+                } @else {
+                <i class="pi pi-bolt"></i>
+                }
+              </span>
+              <span class="difficulty-label">{{ option.label }}</span>
+              @if (option.value === 'EASY') {
+              <span class="difficulty-desc">Conceptos básicos</span>
+              } @else if (option.value === 'MEDIUM') {
+              <span class="difficulty-desc">Comprensión media</span>
+              } @else {
+              <span class="difficulty-desc">Análisis profundo</span>
+              }
+            </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Generate Button -->
+      <div class="generate-action">
+        <button class="generate-main-btn" [disabled]="!canGenerate()" [class.loading]="isGenerating()"
+          (click)="generateQuiz()">
+          @if (isGenerating()) {
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Generando quiz...</span>
+          } @else {
+          <i class="pi pi-sparkles"></i>
+          <span>Generar Quiz</span>
+          }
+        </button>
+        @if (!canGenerate() && !isGenerating()) {
+        <p class="hint">
+          <i class="pi pi-info-circle"></i>
+          Selecciona un documento para comenzar
+        </p>
+        }
+      </div>
+    </section>
+  </div>
+  } @else {
+  <!-- Quiz View -->
+  @if (!showResults()) {
+  <div class="quiz-view">
+    <header class="quiz-header">
+      <div class="quiz-info">
+        <div class="quiz-title-row">
+          <div class="quiz-badge">
+            <i class="pi pi-question-circle"></i>
+            Quiz
+          </div>
+          <button class="exit-btn" (click)="generateNewQuiz()" aria-label="Salir del quiz">
+            <i class="pi pi-times"></i>
+            <span>Salir</span>
+          </button>
+        </div>
+        <div class="quiz-progress">
+          <div class="progress-info">
+            <span class="progress-text">Pregunta <strong>{{ currentQuestionIndex() + 1 }}</strong> de <strong>{{
+                generatedQuiz()!.questions.length }}</strong></span>
+            <span class="progress-percentage">{{ ((currentQuestionIndex() + 1) / generatedQuiz()!.questions.length *
+              100) | number:'1.0-0' }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill"
+              [style.width.%]="((currentQuestionIndex() + 1) / generatedQuiz()!.questions.length) * 100"
+              role="progressbar" [attr.aria-valuenow]="currentQuestionIndex() + 1" [attr.aria-valuemin]="1"
+              [attr.aria-valuemax]="generatedQuiz()!.questions.length"></div>
+          </div>
         </div>
       </div>
     </header>
 
-    <div class="config-grid">
-      <!-- Document Selection (single) -->
-      <section class="config-section documents-section" aria-labelledby="doc-section-title">
-        <div class="section-header">
-          <div class="section-icon">
-            <i class="pi pi-folder"></i>
+    @if (currentQuestion(); as question) {
+    <div class="question-card">
+      <div class="question-number">
+        <span>{{ currentQuestionIndex() + 1 }}</span>
+      </div>
+      <h3 class="question-text">{{ question.question }}</h3>
+
+      @if (!answerRevealed()) {
+      <div class="flashcard-actions">
+        <button class="reveal-btn" (click)="revealAnswer()">
+          <i class="pi pi-eye"></i>
+          <span>Mostrar respuesta</span>
+        </button>
+        <p class="reveal-hint">Piensa bien antes de ver la respuesta</p>
+      </div>
+      } @else {
+      <div class="flashcard-answer">
+        <div class="answer-header">
+          <div class="answer-icon">
+            <i class="pi pi-lightbulb"></i>
           </div>
-          <div>
-            <h2 id="doc-section-title">Seleccionar Documento</h2>
-            <p class="section-subtitle">Elige el material de estudio</p>
-          </div>
+          <div class="answer-label">Respuesta</div>
         </div>
-
-        @if (isLoadingDocs()) {
-          <div class="loading-docs">
-            @for (i of [1, 2, 3]; track i) {
-              <div class="skeleton-item"></div>
-            }
-          </div>
-        } @else if (!hasDocuments()) {
-          <div class="no-documents">
-            <div class="empty-icon-wrapper">
-              <i class="pi pi-cloud-upload"></i>
-            </div>
-            <h3>Sin documentos</h3>
-            <p>Sube tus apuntes o materiales para generar un quiz personalizado</p>
-            <a class="upload-link" routerLink="/documents/upload">
-              <i class="pi pi-plus-circle"></i>
-              Subir documentos
-            </a>
-          </div>
-        } @else {
-          <div class="documents-list">
-            <div class="documents-scroll" role="radiogroup" aria-label="Documentos disponibles">
-              @for (doc of documents(); track doc.id) {
-                <label
-                  class="document-option"
-                  [class.selected]="selectedDocumentId() === doc.id"
-                >
-                  <input
-                    type="radio"
-                    name="document"
-                    [checked]="selectedDocumentId() === doc.id"
-                    (change)="selectDocument(doc.id)"
-                    class="visually-hidden"
-                  />
-                  <div class="doc-radio">
-                    <div class="doc-radio-inner"></div>
-                  </div>
-                  <div class="doc-icon">
-                    <i class="pi pi-file"></i>
-                  </div>
-                  <span class="doc-name" [title]="doc.fileName">
-                    {{ doc.fileName }}
-                  </span>
-                  @if (selectedDocumentId() === doc.id) {
-                    <i class="pi pi-check-circle doc-check"></i>
-                  }
-                </label>
-              }
-            </div>
-          </div>
-        }
-      </section>
-
-      <!-- Quiz Configuration -->
-      <section class="config-section settings-section" aria-labelledby="config-section-title">
-        <div class="section-header">
-          <div class="section-icon">
-            <i class="pi pi-sliders-h"></i>
-          </div>
-          <div>
-            <h2 id="config-section-title">Configuración</h2>
-            <p class="section-subtitle">Personaliza tu quiz</p>
-          </div>
-        </div>
-
-        <div class="config-options">
-          <!-- Number of Questions -->
-          <div class="config-option">
-            <div class="option-header">
-              <span class="option-label">
-                <i class="pi pi-list"></i>
-                Número de preguntas
-              </span>
-              <span class="option-value-badge">{{ numberOfQuestions() }}</span>
-            </div>
-            <div class="slider-wrapper">
-              <input
-                type="range"
-                class="questions-slider"
-                [value]="numberOfQuestions()"
-                (input)="numberOfQuestions.set(+$any($event.target).value)"
-                min="5"
-                max="30"
-                step="5"
-                aria-label="Número de preguntas"
-              />
-              <div class="slider-labels">
-                <span>5</span>
-                <span>10</span>
-                <span>15</span>
-                <span>20</span>
-                <span>25</span>
-                <span>30</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Difficulty -->
-          <div class="config-option">
-            <div class="option-header">
-              <span class="option-label">
-                <i class="pi pi-signal"></i>
-                Nivel de dificultad
-              </span>
-            </div>
-            <div class="difficulty-options" role="radiogroup" aria-label="Dificultad">
-              @for (option of difficultyOptions; track option.value) {
-                <button
-                  class="difficulty-btn"
-                  [class.selected]="selectedDifficulty() === option.value"
-                  [class.easy]="option.value === 'EASY'"
-                  [class.medium]="option.value === 'MEDIUM'"
-                  [class.hard]="option.value === 'HARD'"
-                  (click)="selectedDifficulty.set(option.value)"
-                  role="radio"
-                  [attr.aria-checked]="selectedDifficulty() === option.value"
-                >
-                  <span class="difficulty-icon">
-                    @if (option.value === 'EASY') {
-                      <i class="pi pi-star"></i>
-                    } @else if (option.value === 'MEDIUM') {
-                      <i class="pi pi-star-fill"></i>
-                    } @else {
-                      <i class="pi pi-bolt"></i>
-                    }
-                  </span>
-                  <span class="difficulty-label">{{ option.label }}</span>
-                  @if (option.value === 'EASY') {
-                    <span class="difficulty-desc">Conceptos básicos</span>
-                  } @else if (option.value === 'MEDIUM') {
-                    <span class="difficulty-desc">Comprensión media</span>
-                  } @else {
-                    <span class="difficulty-desc">Análisis profundo</span>
-                  }
-                </button>
-              }
-            </div>
-          </div>
-        </div>
-
-        <!-- Generate Button -->
-        <div class="generate-action">
-          <button
-            class="generate-main-btn"
-            [disabled]="!canGenerate()"
-            [class.loading]="isGenerating()"
-            (click)="generateQuiz()"
-          >
-            @if (isGenerating()) {
-              <i class="pi pi-spin pi-spinner"></i>
-              <span>Generando quiz...</span>
-            } @else {
-              <i class="pi pi-sparkles"></i>
-              <span>Generar Quiz</span>
-            }
+        <p class="answer-text">{{ question.answer }}</p>
+      </div>
+      <div class="self-assess-buttons">
+        <span class="assess-label">¿Lo sabías?</span>
+        <div class="assess-options">
+          <button class="assess-btn incorrect" (click)="markIncorrect()">
+            <i class="pi pi-times"></i>
+            <span>No lo sabía</span>
           </button>
-          @if (!canGenerate() && !isGenerating()) {
-            <p class="hint">
-              <i class="pi pi-info-circle"></i>
-              Selecciona un documento para comenzar
-            </p>
+          <button class="assess-btn correct" (click)="markCorrect()">
+            <i class="pi pi-check"></i>
+            <span>Lo sabía</span>
+          </button>
+        </div>
+      </div>
+      }
+    </div>
+
+    <div class="quiz-actions">
+      <button class="nav-btn prev" [disabled]="currentQuestionIndex() === 0" (click)="previousQuestion()">
+        <i class="pi pi-chevron-left"></i>
+        <span>Anterior</span>
+      </button>
+
+      @if (isLastQuestion() && isCurrentAssessed()) {
+      <button class="nav-btn finish" (click)="finishQuiz()">
+        <span>Ver resultados</span>
+        <i class="pi pi-chart-bar"></i>
+      </button>
+      } @else if (!isLastQuestion() && isCurrentAssessed()) {
+      <button class="nav-btn next" (click)="nextQuestion()">
+        <span>Siguiente</span>
+        <i class="pi pi-chevron-right"></i>
+      </button>
+      }
+    </div>
+    }
+  </div>
+  } @else {
+  <!-- Results View -->
+  <div class="results-view">
+    <div class="results-card">
+      <div class="results-celebration">
+        <div class="confetti-wrapper">
+          @for (i of [1,2,3,4,5,6]; track i) {
+          <div class="confetti-piece"></div>
           }
         </div>
-      </section>
-    </div>
-  } @else {
-    <!-- Quiz View -->
-    @if (!showResults()) {
-      <div class="quiz-view">
-        <header class="quiz-header">
-          <div class="quiz-info">
-            <div class="quiz-title-row">
-              <div class="quiz-badge">
-                <i class="pi pi-question-circle"></i>
-                Quiz
-              </div>
-              <button class="exit-btn" (click)="generateNewQuiz()" aria-label="Salir del quiz">
-                <i class="pi pi-times"></i>
-                <span>Salir</span>
-              </button>
-            </div>
-            <div class="quiz-progress">
-              <div class="progress-info">
-                <span class="progress-text">Pregunta <strong>{{ currentQuestionIndex() + 1 }}</strong> de <strong>{{ generatedQuiz()!.questions.length }}</strong></span>
-                <span class="progress-percentage">{{ ((currentQuestionIndex() + 1) / generatedQuiz()!.questions.length * 100) | number:'1.0-0' }}%</span>
-              </div>
-              <div class="progress-bar">
-                <div
-                  class="progress-fill"
-                  [style.width.%]="((currentQuestionIndex() + 1) / generatedQuiz()!.questions.length) * 100"
-                  role="progressbar"
-                  [attr.aria-valuenow]="currentQuestionIndex() + 1"
-                  [attr.aria-valuemin]="1"
-                  [attr.aria-valuemax]="generatedQuiz()!.questions.length"
-                ></div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        @if (currentQuestion(); as question) {
-          <div class="question-card">
-            <div class="question-number">
-              <span>{{ currentQuestionIndex() + 1 }}</span>
-            </div>
-            <h3 class="question-text">{{ question.question }}</h3>
-
-            @if (!answerRevealed()) {
-              <div class="flashcard-actions">
-                <button class="reveal-btn" (click)="revealAnswer()">
-                  <i class="pi pi-eye"></i>
-                  <span>Mostrar respuesta</span>
-                </button>
-                <p class="reveal-hint">Piensa bien antes de ver la respuesta</p>
-              </div>
-            } @else {
-              <div class="flashcard-answer">
-                <div class="answer-header">
-                  <div class="answer-icon">
-                    <i class="pi pi-lightbulb"></i>
-                  </div>
-                  <div class="answer-label">Respuesta</div>
-                </div>
-                <p class="answer-text">{{ question.answer }}</p>
-              </div>
-              <div class="self-assess-buttons">
-                <span class="assess-label">¿Lo sabías?</span>
-                <div class="assess-options">
-                  <button class="assess-btn incorrect" (click)="markIncorrect()">
-                    <i class="pi pi-times"></i>
-                    <span>No lo sabía</span>
-                  </button>
-                  <button class="assess-btn correct" (click)="markCorrect()">
-                    <i class="pi pi-check"></i>
-                    <span>Lo sabía</span>
-                  </button>
-                </div>
-              </div>
-            }
-          </div>
-
-          <div class="quiz-actions">
-            <button
-              class="nav-btn prev"
-              [disabled]="currentQuestionIndex() === 0"
-              (click)="previousQuestion()"
-            >
-              <i class="pi pi-chevron-left"></i>
-              <span>Anterior</span>
-            </button>
-
-            @if (isLastQuestion() && isCurrentAssessed()) {
-              <button class="nav-btn finish" (click)="finishQuiz()">
-                <span>Ver resultados</span>
-                <i class="pi pi-chart-bar"></i>
-              </button>
-            } @else if (!isLastQuestion() && isCurrentAssessed()) {
-              <button class="nav-btn next" (click)="nextQuestion()">
-                <span>Siguiente</span>
-                <i class="pi pi-chevron-right"></i>
-              </button>
-            }
-          </div>
-        }
       </div>
-    } @else {
-      <!-- Results View -->
-      <div class="results-view">
-        <div class="results-card">
-          <div class="results-celebration">
-            <div class="confetti-wrapper">
-              @for (i of [1,2,3,4,5,6]; track i) {
-                <div class="confetti-piece"></div>
-              }
-            </div>
-          </div>
 
-          <div class="results-header">
-            <div class="score-circle" [class.high]="quizScore().percentage >= 70" [class.medium]="quizScore().percentage >= 50 && quizScore().percentage < 70" [class.low]="quizScore().percentage < 50">
-              <svg class="score-ring" viewBox="0 0 120 120">
-                <circle class="score-ring-bg" cx="60" cy="60" r="52" />
-                <circle
-                  class="score-ring-fill"
-                  cx="60" cy="60" r="52"
-                  [style.stroke-dasharray]="2 * 3.14159 * 52"
-                  [style.stroke-dashoffset]="2 * 3.14159 * 52 * (1 - quizScore().percentage / 100)"
-                />
-              </svg>
-              <div class="score-content">
-                <span class="score-value">{{ quizScore().percentage }}%</span>
-                <span class="score-label">Puntuación</span>
-              </div>
-            </div>
-            <div class="results-summary">
-              <h2>
-                @if (quizScore().percentage >= 70) {
-                  🎉 ¡Excelente resultado!
-                } @else if (quizScore().percentage >= 50) {
-                  👍 ¡Buen trabajo!
-                } @else {
-                  💪 ¡Sigue practicando!
-                }
-              </h2>
-              <p>Has acertado <strong>{{ quizScore().correct }}</strong> de <strong>{{ quizScore().total }}</strong> preguntas</p>
-              <div class="results-stats">
-                <div class="stat correct-stat">
-                  <i class="pi pi-check-circle"></i>
-                  <span>{{ quizScore().correct }} correctas</span>
-                </div>
-                <div class="stat incorrect-stat">
-                  <i class="pi pi-times-circle"></i>
-                  <span>{{ quizScore().total - quizScore().correct }} incorrectas</span>
-                </div>
-              </div>
-            </div>
+      <div class="results-header">
+        <div class="score-circle" [class.high]="quizScore().percentage >= 70"
+          [class.medium]="quizScore().percentage >= 50 && quizScore().percentage < 70"
+          [class.low]="quizScore().percentage < 50">
+          <svg class="score-ring" viewBox="0 0 120 120">
+            <circle class="score-ring-bg" cx="60" cy="60" r="52" />
+            <circle class="score-ring-fill" cx="60" cy="60" r="52" [style.stroke-dasharray]="2 * 3.14159 * 52"
+              [style.stroke-dashoffset]="2 * 3.14159 * 52 * (1 - quizScore().percentage / 100)" />
+          </svg>
+          <div class="score-content">
+            <span class="score-value">{{ quizScore().percentage }}%</span>
+            <span class="score-label">Puntuación</span>
           </div>
-
-          <div class="results-actions">
-            <button class="action-btn secondary" (click)="retryQuiz()">
-              <i class="pi pi-refresh"></i>
-              <span>Reintentar</span>
-            </button>
-            <button class="action-btn primary" (click)="generateNewQuiz()">
-              <i class="pi pi-plus"></i>
-              <span>Nuevo Quiz</span>
-            </button>
-          </div>
-
-          <!-- Question Review -->
-          <div class="questions-review">
-            <h3>
-              <i class="pi pi-list-check"></i>
-              Revisión de respuestas
-            </h3>
-            @for (question of generatedQuiz()!.questions; track $index; let i = $index) {
-              <div class="review-item" [class.correct]="selfAssessments()[i]" [class.incorrect]="selfAssessments()[i] === false">
-                <div class="review-header">
-                  <span class="review-number">{{ i + 1 }}</span>
-                  <span class="review-status">
-                    @if (selfAssessments()[i]) {
-                      <i class="pi pi-check-circle"></i> Lo sabía
-                    } @else {
-                      <i class="pi pi-times-circle"></i> No lo sabía
-                    }
-                  </span>
-                </div>
-                <p class="review-question">{{ question.question }}</p>
-                <div class="review-answers">
-                  <p>
-                    <strong>Respuesta:</strong>
-                    <span>{{ question.answer }}</span>
-                  </p>
-                </div>
-              </div>
+        </div>
+        <div class="results-summary">
+          <h2>
+            @if (quizScore().percentage >= 70) {
+            🎉 ¡Excelente resultado!
+            } @else if (quizScore().percentage >= 50) {
+            👍 ¡Buen trabajo!
+            } @else {
+            💪 ¡Sigue practicando!
             }
+          </h2>
+          <p>Has acertado <strong>{{ quizScore().correct }}</strong> de <strong>{{ quizScore().total }}</strong>
+            preguntas</p>
+          <div class="results-stats">
+            <div class="stat correct-stat">
+              <i class="pi pi-check-circle"></i>
+              <span>{{ quizScore().correct }} correctas</span>
+            </div>
+            <div class="stat incorrect-stat">
+              <i class="pi pi-times-circle"></i>
+              <span>{{ quizScore().total - quizScore().correct }} incorrectas</span>
+            </div>
           </div>
         </div>
       </div>
-    }
+
+      <div class="results-actions">
+        <button class="action-btn secondary" (click)="retryQuiz()">
+          <i class="pi pi-refresh"></i>
+          <span>Reintentar</span>
+        </button>
+        <button class="action-btn primary" (click)="generateNewQuiz()">
+          <i class="pi pi-plus"></i>
+          <span>Nuevo Quiz</span>
+        </button>
+      </div>
+
+      <!-- Question Review -->
+      <div class="questions-review">
+        <h3>
+          <i class="pi pi-list-check"></i>
+          Revisión de respuestas
+        </h3>
+        @for (question of generatedQuiz()!.questions; track $index; let i = $index) {
+        <div class="review-item" [class.correct]="selfAssessments()[i]"
+          [class.incorrect]="selfAssessments()[i] === false">
+          <div class="review-header">
+            <span class="review-number">{{ i + 1 }}</span>
+            <span class="review-status">
+              @if (selfAssessments()[i]) {
+              <i class="pi pi-check-circle"></i> Lo sabía
+              } @else {
+              <i class="pi pi-times-circle"></i> No lo sabía
+              }
+            </span>
+          </div>
+          <p class="review-question">{{ question.question }}</p>
+          <div class="review-answers">
+            <p>
+              <strong>Respuesta:</strong>
+              <span>{{ question.answer }}</span>
+            </p>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+  }
   }
 </div>

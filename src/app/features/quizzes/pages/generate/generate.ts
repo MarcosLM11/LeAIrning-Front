@@ -200,7 +200,5 @@ export class Generate implements OnInit {
     this.showResults.set(false);
   }
 
-  goBack(): void {
-    this.router.navigate(['/dashboard']);
-  }
+
 }

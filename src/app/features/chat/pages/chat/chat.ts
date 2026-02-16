@@ -278,9 +278,7 @@ export class Chat implements OnInit, AfterViewChecked {
     this.showSidebar.update(v => !v);
   }
 
-  goBack(): void {
-    this.router.navigate(['/dashboard']);
-  }
+
 
   private scrollToBottom(): void {
     const container = this.messagesContainer?.nativeElement;
