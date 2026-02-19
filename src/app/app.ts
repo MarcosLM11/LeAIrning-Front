@@ -19,7 +19,7 @@ export class App {
   showLayout = signal<boolean>(true);
 
   // Signal para el estado colapsado del sidebar
-  sidebarCollapsed = signal<boolean>(false);
+  sidebarCollapsed = signal<boolean>(true);
 
   constructor(
     private router: Router,

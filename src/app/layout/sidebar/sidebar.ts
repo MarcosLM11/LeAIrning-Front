@@ -20,7 +20,7 @@ export class Sidebar {
   private authService = inject(AuthService);
 
   // Signal para controlar si el sidebar está colapsado (cerrado)
-  isCollapsed = signal(false);
+  isCollapsed = signal(true);
 
   // Output para notificar al padre cuando cambia el estado
   collapsedChange = output<boolean>();
