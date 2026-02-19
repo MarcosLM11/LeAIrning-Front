@@ -1470,6 +1470,111 @@
 }
 
 // ============================================================================
+// HISTORY SECTION
+// ============================================================================
+
+.history-section {
+  margin-top: var(--spacing-xl);
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.history-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--surface-ground);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+
+  &:hover {
+    border-color: var(--border-color-hover);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.history-info {
+  flex: 1;
+  min-width: 0;
+
+  .history-date {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+
+    i {
+      font-size: 0.85rem;
+    }
+  }
+}
+
+.history-score {
+  flex-shrink: 0;
+}
+
+.score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+
+  &.high {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success-color);
+  }
+
+  &.medium {
+    background: rgba(234, 179, 8, 0.1);
+    color: var(--warning-color);
+  }
+
+  &.low {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error-color);
+  }
+
+  i {
+    font-size: 0.8rem;
+  }
+}
+
+.retake-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: opacity var(--transition-base), transform var(--transition-base);
+  white-space: nowrap;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  i {
+    font-size: 0.85rem;
+  }
+}
+
+// ============================================================================
 // RESPONSIVE
 // ============================================================================
 
@@ -1513,5 +1618,11 @@
 
   .difficulty-options {
     grid-template-columns: 1fr;
+  }
+
+  .history-card {
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
   }
 }

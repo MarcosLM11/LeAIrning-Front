@@ -6,14 +6,14 @@ import {
   ChangeDetectionStrategy,
   OnInit
 } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastModule } from 'primeng/toast';
 import { firstValueFrom } from 'rxjs';
 import { QuizService } from '../../../../core/services/quiz';
 import { DocumentService } from '../../../../core/services/document';
 import { Document } from '../../../../core/models/document.model';
-import { Quiz, DifficultyLevel } from '../../../../core/models/quiz.model';
+import { Quiz, QuizzSummary, DifficultyLevel } from '../../../../core/models/quiz.model';
 import { ToastService } from '../../../../shared/services/toast.service';
 
 interface DifficultyOption {
@@ -30,6 +30,7 @@ const DIFFICULTY_OPTIONS: DifficultyOption[] = [
 @Component({
   selector: 'app-generate-quiz',
   imports: [
+    DatePipe,
     DecimalPipe,
     ToastModule
   ],
@@ -55,6 +56,7 @@ export class Generate implements OnInit {
   // Loading states
   isLoadingDocs = signal(true);
   isGenerating = signal(false);
+  isLoadingHistory = signal(false);
 
   // Quiz state
   generatedQuiz = signal<Quiz | null>(null);
@@ -62,6 +64,10 @@ export class Generate implements OnInit {
   answerRevealed = signal(false);
   selfAssessments = signal<Record<number, boolean>>({});
   showResults = signal(false);
+  activeQuizId = signal<string | null>(null);
+
+  // History
+  quizHistory = signal<QuizzSummary[]>([]);
 
   // Options
   readonly difficultyOptions = DIFFICULTY_OPTIONS;
@@ -100,6 +106,7 @@ export class Generate implements OnInit {
 
   ngOnInit(): void {
     this.loadDocuments();
+    this.loadQuizHistory();
   }
 
   private async loadDocuments(): Promise<void> {
@@ -118,6 +125,18 @@ export class Generate implements OnInit {
     }
   }
 
+  private async loadQuizHistory(): Promise<void> {
+    this.isLoadingHistory.set(true);
+    try {
+      const response = await firstValueFrom(this.quizService.list());
+      this.quizHistory.set(response?.content ?? []);
+    } catch {
+      // Silent fail — history is not critical
+    } finally {
+      this.isLoadingHistory.set(false);
+    }
+  }
+
   selectDocument(docId: string): void {
     this.selectedDocumentId.set(docId);
   }
@@ -127,18 +146,33 @@ export class Generate implements OnInit {
     if (!docId || this.isGenerating()) return;
     this.isGenerating.set(true);
     try {
-      const quiz = await firstValueFrom(
+      const result = await firstValueFrom(
         this.quizService.generate(docId, this.numberOfQuestions(), this.selectedDifficulty())
       );
-      if (quiz) {
-        this.generatedQuiz.set(quiz);
+      if (result) {
+        this.generatedQuiz.set({ questions: result.questions });
+        this.activeQuizId.set(result.id);
         this.resetQuizState();
-        this.toast.success(`Se han generado ${quiz.questions.length} preguntas`, 'Quiz generado');
+        this.toast.success(`Se han generado ${result.questions.length} preguntas`, 'Quiz generado');
+        this.loadQuizHistory();
       }
     } catch {
       this.toast.error('No se pudo generar el quiz. Inténtalo de nuevo.');
     } finally {
       this.isGenerating.set(false);
+    }
+  }
+
+  async retakeQuiz(quizId: string): Promise<void> {
+    try {
+      const quiz = await firstValueFrom(this.quizService.get(quizId));
+      if (quiz) {
+        this.generatedQuiz.set(quiz);
+        this.activeQuizId.set(quizId);
+        this.resetQuizState();
+      }
+    } catch {
+      this.toast.error('No se pudo cargar el quiz');
     }
   }
 
@@ -169,6 +203,7 @@ export class Generate implements OnInit {
       this.currentQuestionIndex.update(i => i + 1);
     } else {
       this.showResults.set(true);
+      this.submitScore();
     }
   }
 
@@ -189,6 +224,7 @@ export class Generate implements OnInit {
 
   finishQuiz(): void {
     this.showResults.set(true);
+    this.submitScore();
   }
 
   retryQuiz(): void {
@@ -197,8 +233,18 @@ export class Generate implements OnInit {
 
   generateNewQuiz(): void {
     this.generatedQuiz.set(null);
+    this.activeQuizId.set(null);
     this.showResults.set(false);
   }
 
-
+  private async submitScore(): Promise<void> {
+    const quizId = this.activeQuizId();
+    if (!quizId) return;
+    try {
+      await firstValueFrom(this.quizService.updateScore(quizId, this.quizScore().percentage));
+      this.loadQuizHistory();
+    } catch {
+      this.toast.error('No se pudo guardar la puntuación');
+    }
+  }
 }

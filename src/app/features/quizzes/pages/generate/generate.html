@@ -170,6 +170,46 @@
       </div>
     </section>
   </div>
+
+  <!-- Quiz History -->
+  @if (quizHistory().length > 0) {
+  <section class="config-section history-section" aria-labelledby="history-section-title">
+    <div class="section-header">
+      <div class="section-icon">
+        <i class="pi pi-history"></i>
+      </div>
+      <div>
+        <h2 id="history-section-title">Historial de Quizzes</h2>
+        <p class="section-subtitle">Repasa tus quizzes anteriores</p>
+      </div>
+    </div>
+
+    <div class="history-list">
+      @for (quiz of quizHistory(); track quiz.id) {
+      <div class="history-card">
+        <div class="history-info">
+          <span class="history-date">
+            <i class="pi pi-calendar"></i>
+            {{ quiz.createdTimestamp | date:'shortDate' }}
+          </span>
+        </div>
+        <div class="history-score">
+          <span class="score-badge" [class.high]="quiz.lastScore >= 70"
+                [class.medium]="quiz.lastScore >= 50 && quiz.lastScore < 70"
+                [class.low]="quiz.lastScore < 50">
+            <i class="pi pi-chart-bar"></i>
+            {{ quiz.lastScore }}%
+          </span>
+        </div>
+        <button class="retake-btn" (click)="retakeQuiz(quiz.id)" aria-label="Reintentar quiz">
+          <i class="pi pi-play"></i>
+          <span>Reintentar</span>
+        </button>
+      </div>
+      }
+    </div>
+  </section>
+  }
   } @else {
   <!-- Quiz View -->
   @if (!showResults()) {
