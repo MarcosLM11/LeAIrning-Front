@@ -138,22 +138,16 @@ export class AuthService {
   }
 
   private fetchCurrentUser(accessToken: string): Observable<User> {
-    const userId = this.extractUserIdFromToken(accessToken);
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${accessToken}`
     });
-    return this.http.get<UserResponse>(`${this.usersUrl}/${userId}`, { headers }).pipe(
+    return this.http.get<UserResponse>(`${this.usersUrl}/me`, { headers }).pipe(
       map(response => ({
         id: response.id,
         name: response.name,
         email: response.email
       }))
     );
-  }
-
-  private extractUserIdFromToken(token: string): string {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.sub;
   }
 
   private storeTokens(tokens: TokenPair): void {
