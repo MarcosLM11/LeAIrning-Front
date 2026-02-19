@@ -26,17 +26,16 @@ export class App {
     private contexts: ChildrenOutletContexts
   ) {
     // Inicializar el estado del layout basado en la URL actual
-    const currentUrl = this.router.url;
-    const isAuthRoute = currentUrl.includes('/auth/');
-    this.showLayout.set(!isAuthRoute);
+    var currentUrl = this.router.url;
+    var isFullPageRoute = currentUrl.includes('/auth/') || currentUrl.includes('/error');
+    this.showLayout.set(!isFullPageRoute);
 
     // Escuchar cambios de ruta
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
-        // Ocultar layout en rutas de autenticación
-        const isAuthRoute = event.url.includes('/auth/');
-        this.showLayout.set(!isAuthRoute);
+        var isFullPageRoute = event.url.includes('/auth/') || event.url.includes('/error');
+        this.showLayout.set(!isFullPageRoute);
       });
   }
 

@@ -1,0 +1,129 @@
+<div class="error-container" role="main" aria-labelledby="error-title">
+  <!-- Animated Background -->
+  <div class="animated-background" aria-hidden="true">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+  </div>
+
+  <!-- Stars (404 space theme) -->
+  @if (errorType() === '404') {
+    <div class="stars-container" aria-hidden="true">
+      @for (star of stars; track $index) {
+        <div class="star"
+          [style.left.%]="star.x"
+          [style.top.%]="star.y"
+          [style.width.px]="star.size"
+          [style.height.px]="star.size"
+          [style.animation-delay]="star.delay + 's'">
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Error Card -->
+  <div class="error-card" @cardEntrance>
+    <!-- CSS Illustration -->
+    <div class="illustration-container" aria-hidden="true" @illustrationEntrance>
+      @switch (errorType()) {
+        @case ('404') {
+          <div class="astronaut-scene">
+            <div class="planet">
+              <div class="crater crater-1"></div>
+              <div class="crater crater-2"></div>
+              <div class="crater crater-3"></div>
+            </div>
+            <div class="astronaut">
+              <div class="helmet">
+                <div class="visor"></div>
+              </div>
+              <div class="body">
+                <div class="pack"></div>
+              </div>
+              <div class="arm arm-left"></div>
+              <div class="arm arm-right"></div>
+              <div class="leg leg-left"></div>
+              <div class="leg leg-right"></div>
+              <div class="tether"></div>
+            </div>
+          </div>
+        }
+        @case ('500') {
+          <div class="server-scene">
+            <div class="server">
+              <div class="server-shelf">
+                <div class="led led-red"></div>
+                <div class="led led-red"></div>
+                <div class="led led-off"></div>
+              </div>
+              <div class="server-shelf">
+                <div class="led led-orange"></div>
+                <div class="led led-red"></div>
+                <div class="led led-off"></div>
+              </div>
+              <div class="server-shelf">
+                <div class="led led-off"></div>
+                <div class="led led-off"></div>
+                <div class="led led-red"></div>
+              </div>
+            </div>
+            <div class="smoke">
+              <div class="smoke-particle smoke-1"></div>
+              <div class="smoke-particle smoke-2"></div>
+              <div class="smoke-particle smoke-3"></div>
+            </div>
+            <div class="gear"></div>
+            <div class="lightning"></div>
+          </div>
+        }
+        @default {
+          <div class="generic-scene">
+            <div class="warning-triangle">
+              <div class="exclamation">
+                <div class="exclamation-line"></div>
+                <div class="exclamation-dot"></div>
+              </div>
+            </div>
+            <div class="ripple ripple-1"></div>
+            <div class="ripple ripple-2"></div>
+            <div class="ripple ripple-3"></div>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Error Code -->
+    <div class="error-code" @staggerItem>
+      {{ errorCode() }}
+    </div>
+
+    <!-- Text -->
+    <h1 id="error-title" @staggerItem>{{ title() }}</h1>
+    <p class="error-subtitle" @staggerItem>{{ subtitle() }}</p>
+
+    <!-- Actions -->
+    <div class="error-actions" @staggerItem>
+      <button class="primary-btn" (click)="goHome()" aria-label="Ir a la página principal">
+        <i class="pi pi-home"></i>
+        <span>Ir al inicio</span>
+      </button>
+      <button class="secondary-btn" (click)="goBack()" aria-label="Volver a la página anterior">
+        <i class="pi pi-arrow-left"></i>
+        <span>Volver</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Particles -->
+  <div class="particles" aria-hidden="true">
+    @for (particle of particles; track $index) {
+      <div class="particle"
+        [style.left.%]="particle.x"
+        [style.animation-delay]="particle.delay + 's'"
+        [style.animation-duration]="particle.duration + 's'"
+        [style.width.px]="particle.size"
+        [style.height.px]="particle.size">
+      </div>
+    }
+  </div>
+</div>

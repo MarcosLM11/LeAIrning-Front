@@ -62,9 +62,29 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
+  // Error pages
+  {
+    path: 'error',
+    loadComponent: () => import('./features/error/pages/error-page/error-page')
+      .then(m => m.ErrorPage),
+    data: { errorType: 'generic' }
+  },
+  {
+    path: 'error/404',
+    loadComponent: () => import('./features/error/pages/error-page/error-page')
+      .then(m => m.ErrorPage),
+    data: { errorType: '404' }
+  },
+  {
+    path: 'error/500',
+    loadComponent: () => import('./features/error/pages/error-page/error-page')
+      .then(m => m.ErrorPage),
+    data: { errorType: '500' }
+  },
+
   // Ruta 404: página no encontrada
   {
     path: '**',
-    redirectTo: 'dashboard'
+    redirectTo: 'error/404'
   }
 ];
