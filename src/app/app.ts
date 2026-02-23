@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd, ChildrenOutletContexts } from '@angular/router';
 import { filter } from 'rxjs';
 import { Header } from './layout/header/header';
@@ -6,6 +6,7 @@ import { Sidebar } from './layout/sidebar/sidebar';
 import { ProfileEditDialog } from './shared/components/profile-edit-dialog/profile-edit-dialog';
 import { ProfileViewDialog } from './shared/components/profile-view-dialog/profile-view-dialog';
 import { fadeScaleAnimation } from './shared/animations/route-animations';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-root',
@@ -21,10 +22,19 @@ export class App {
   // Signal para el estado colapsado del sidebar
   sidebarCollapsed = signal<boolean>(true);
 
+  private translate = inject(TranslateService);
+
   constructor(
     private router: Router,
     private contexts: ChildrenOutletContexts
   ) {
+    this.translate.addLangs(['en', 'es']);
+    this.translate.setDefaultLang('es');
+
+    // Check if browser has a preferred language or keep 'es' as default
+    const browserLang = this.translate.getBrowserLang();
+    this.translate.use(browserLang?.match(/en|es/) ? browserLang : 'es');
+
     // Inicializar el estado del layout basado en la URL actual
     var currentUrl = this.router.url;
     var isFullPageRoute = currentUrl.includes('/auth/') || currentUrl.includes('/error');

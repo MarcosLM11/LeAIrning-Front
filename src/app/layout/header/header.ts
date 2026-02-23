@@ -4,7 +4,9 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { AuthService } from '../../core/services/auth';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle';
+import { LanguageToggleComponent } from '../../shared/components/language-toggle/language-toggle';
 import { DialogService } from '../../shared/services/dialog';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-header',
@@ -13,6 +15,8 @@ import { DialogService } from '../../shared/services/dialog';
     ButtonModule,
     InputTextModule,
     ThemeToggleComponent,
+    LanguageToggleComponent,
+    TranslateModule,
   ],
   templateUrl: './header.html',
   styleUrl: './header.scss',

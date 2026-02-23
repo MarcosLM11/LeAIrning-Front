@@ -8,6 +8,7 @@ import { ThemeToggleComponent } from '../../../../shared/components/theme-toggle
 import { AuthIllustrationComponent } from '../../../../shared/components/auth-illustration/auth-illustration.component';
 import { SocialLoginButtons } from '../../../../shared/components/social-login-buttons/social-login-buttons';
 import { CommonModule } from '@angular/common';
+import { LanguageToggleComponent } from '../../../../shared/components/language-toggle/language-toggle';
 
 @Component({
   selector: 'app-login',
@@ -19,6 +20,7 @@ import { CommonModule } from '@angular/common';
     InputTextModule,
     PasswordModule,
     ThemeToggleComponent,
+    LanguageToggleComponent,
     AuthIllustrationComponent,
     SocialLoginButtons
   ],
@@ -68,7 +70,7 @@ export class Login {
 
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
-    
+
     this.authService.login(this.loginForm.value).subscribe({
       next: () => {
         this.isSubmitting.set(false);
@@ -77,7 +79,7 @@ export class Login {
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        
+
         if (err.status === 401) {
           this.errorMessage.set('Correo o contraseña incorrectos');
         } else {

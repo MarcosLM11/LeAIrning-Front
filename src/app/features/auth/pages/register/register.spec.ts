@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { Register } from './register';
+import { TranslateModule } from '@ngx-translate/core';
 
 describe('Register', () => {
   let component: Register;
@@ -11,7 +12,7 @@ describe('Register', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Register],
+      imports: [Register, TranslateModule.forRoot()],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),

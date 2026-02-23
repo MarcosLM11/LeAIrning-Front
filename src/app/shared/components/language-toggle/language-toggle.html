@@ -1,0 +1,9 @@
+<button class="language-toggle-btn" (click)="toggleLanguage()"
+    [attr.aria-label]="isSpanish() ? 'Switch to English' : 'Cambiar a Español'" type="button">
+    <div class="toggle-icon-wrapper">
+        <span class="lang-text es-text" [class.active]="isSpanish()">ES</span>
+        <span class="lang-text en-text" [class.active]="!isSpanish()">EN</span>
+    </div>
+
+    <div class="toggle-slider" [class.en]="!isSpanish()"></div>
+</button>

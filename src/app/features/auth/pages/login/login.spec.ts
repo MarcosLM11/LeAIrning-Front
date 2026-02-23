@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { Login } from './login';
+import { TranslateModule } from '@ngx-translate/core';
 
 describe('Login', () => {
   let component: Login;
@@ -11,7 +12,7 @@ describe('Login', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Login],
+      imports: [Login, TranslateModule.forRoot()],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),

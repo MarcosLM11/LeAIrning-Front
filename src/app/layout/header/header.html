@@ -11,14 +11,8 @@
   <div class="header-center">
     <span class="p-input-icon-left search-box">
       <i class="pi pi-search"></i>
-      <input 
-        type="text" 
-        pInputText 
-        placeholder="Buscar documentos..."
-        class="search-input"
-        [value]="searchTerm()"
-        (input)="searchTerm.set($any($event.target).value)"
-      />
+      <input type="text" pInputText placeholder="{{ 'HEADER.SEARCH_PLACEHOLDER' | translate }}" class="search-input"
+        [value]="searchTerm()" (input)="searchTerm.set($any($event.target).value)" />
     </span>
   </div>
 
@@ -26,85 +20,82 @@
   <div class="header-right">
     <!-- Theme Toggle -->
     <app-theme-toggle />
+    <app-language-toggle style="margin-right: 1rem" />
 
     <!-- Avatar del usuario con menú desplegable -->
     <div class="user-section">
-      <span class="username">{{ currentUser()?.name || 'Usuario' }}</span>
-      
+      <span class="username">{{ currentUser()?.name || ('HEADER.USER' | translate) }}</span>
+
       <div class="user-menu-container">
-        <button 
-          class="user-avatar"
-          [class.menu-open]="isMenuOpen()"
-          (click)="toggleMenu()"
-          [title]="currentUser()?.name || 'Usuario'"
-        >
+        <button class="user-avatar" [class.menu-open]="isMenuOpen()" (click)="toggleMenu()"
+          [title]="currentUser()?.name || ('HEADER.USER' | translate)">
           <span class="avatar-initials">{{ getUserInitials() }}</span>
           <span class="avatar-status"></span>
         </button>
 
         <!-- Menú desplegable personalizado -->
         @if (isMenuOpen()) {
-          <div class="user-dropdown" role="menu">
-            <!-- Header del menú con info del usuario -->
-            <div class="dropdown-header">
-              <div class="dropdown-avatar">
-                <span>{{ getUserInitials() }}</span>
-              </div>
-              <div class="dropdown-user-info">
-                <span class="dropdown-user-name">{{ currentUser()?.name || 'Usuario' }}</span>
-                <span class="dropdown-user-email">{{ currentUser()?.email || 'email@ejemplo.com' }}</span>
-              </div>
+        <div class="user-dropdown" role="menu">
+          <!-- Header del menú con info del usuario -->
+          <div class="dropdown-header">
+            <div class="dropdown-avatar">
+              <span>{{ getUserInitials() }}</span>
             </div>
-
-            <div class="dropdown-divider"></div>
-
-            <!-- Opciones del menú -->
-            <div class="dropdown-menu-items">
-              <button class="dropdown-item" (click)="openProfileDialog()" role="menuitem">
-                <div class="item-icon">
-                  <i class="pi pi-pencil"></i>
-                </div>
-                <div class="item-content">
-                  <span class="item-label">Editar Perfil</span>
-                  <span class="item-description">Modifica tu información personal</span>
-                </div>
-              </button>
-
-              <button class="dropdown-item" (click)="goToProfile()" role="menuitem">
-                <div class="item-icon">
-                  <i class="pi pi-user"></i>
-                </div>
-                <div class="item-content">
-                  <span class="item-label">Mi Perfil</span>
-                  <span class="item-description">Ver tu perfil público</span>
-                </div>
-              </button>
-
-              <button class="dropdown-item" (click)="goToSettings()" role="menuitem">
-                <div class="item-icon">
-                  <i class="pi pi-cog"></i>
-                </div>
-                <div class="item-content">
-                  <span class="item-label">Configuración</span>
-                  <span class="item-description">Preferencias de la aplicación</span>
-                </div>
-              </button>
-            </div>
-
-            <div class="dropdown-divider"></div>
-
-            <!-- Logout -->
-            <div class="dropdown-footer">
-              <button class="dropdown-item logout-item" (click)="logout()" role="menuitem">
-                <div class="item-icon">
-                  <i class="pi pi-sign-out"></i>
-                </div>
-                <div class="item-content">
-                  <span class="item-label">Cerrar Sesión</span>
-                </div>
-              </button>
+            <div class="dropdown-user-info">
+              <span class="dropdown-user-name">{{ currentUser()?.name || ('HEADER.USER' | translate) }}</span>
+              <span class="dropdown-user-email">{{ currentUser()?.email || 'email@ejemplo.com' }}</span>
             </div>
           </div>
+
+          <div class="dropdown-divider"></div>
+
+          <!-- Opciones del menú -->
+          <div class="dropdown-menu-items">
+            <button class="dropdown-item" (click)="openProfileDialog()" role="menuitem">
+              <div class="item-icon">
+                <i class="pi pi-pencil"></i>
+              </div>
+              <div class="item-content">
+                <span class="item-label">{{ 'HEADER.EDIT_PROFILE' | translate }}</span>
+                <span class="item-description">{{ 'HEADER.EDIT_PROFILE_DESC' | translate }}</span>
+              </div>
+            </button>
+
+            <button class="dropdown-item" (click)="goToProfile()" role="menuitem">
+              <div class="item-icon">
+                <i class="pi pi-user"></i>
+              </div>
+              <div class="item-content">
+                <span class="item-label">{{ 'HEADER.MY_PROFILE' | translate }}</span>
+                <span class="item-description">{{ 'HEADER.MY_PROFILE_DESC' | translate }}</span>
+              </div>
+            </button>
+
+            <button class="dropdown-item" (click)="goToSettings()" role="menuitem">
+              <div class="item-icon">
+                <i class="pi pi-cog"></i>
+              </div>
+              <div class="item-content">
+                <span class="item-label">{{ 'HEADER.SETTINGS' | translate }}</span>
+                <span class="item-description">{{ 'HEADER.SETTINGS_DESC' | translate }}</span>
+              </div>
+            </button>
+          </div>
+
+          <div class="dropdown-divider"></div>
+
+          <!-- Logout -->
+          <div class="dropdown-footer">
+            <button class="dropdown-item logout-item" (click)="logout()" role="menuitem">
+              <div class="item-icon">
+                <i class="pi pi-sign-out"></i>
+              </div>
+              <div class="item-content">
+                <span class="item-label">{{ 'HEADER.LOGOUT' | translate }}</span>
+              </div>
+            </button>
+          </div>
+        </div>
         }
       </div>
     </div>

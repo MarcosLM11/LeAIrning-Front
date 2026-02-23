@@ -12,6 +12,7 @@ import {
   ConversationPage
 } from '../models/chat.model';
 import { environment } from '../../../environments/environment';
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({
   providedIn: 'root'
@@ -21,6 +22,7 @@ export class ChatService {
   private readonly conversationsApiUrl = `${environment.apiUrl}/conversations`;
 
   private http = inject(HttpClient);
+  private translate = inject(TranslateService);
 
   // Local state for conversations with their messages
   private conversationsSignal = signal<Conversation[]>([]);
@@ -101,8 +103,12 @@ export class ChatService {
    * Send a question to the chat API.
    */
   ask(question: string, conversationId: string): Observable<ChatResponse> {
-    const headers = new HttpHeaders({ 'X-Conversation-Id': conversationId });
-    const request: ChatRequest = { question };
+    const language = this.translate.currentLang || this.translate.defaultLang || 'es';
+    const headers = new HttpHeaders({
+      'X-Conversation-Id': conversationId,
+      'Accept-Language': language
+    });
+    const request: ChatRequest = { question, language };
     return this.http.post<ChatResponse>(`${this.chatApiUrl}/ask`, request, { headers });
   }
 

@@ -38,6 +38,16 @@
   background: var(--bg-main);
   position: relative;
   overflow: hidden;
+
+  .header-actions {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    z-index: 100;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
 }
 
 // Animated gradient background
@@ -184,7 +194,9 @@
       transition: opacity 0.3s ease;
     }
 
-    span, svg, i {
+    span,
+    svg,
+    i {
       position: relative;
       z-index: 1;
     }
@@ -299,7 +311,7 @@
   }
 
   // Move success icon left when inside a password field to avoid overlapping the toggle icon
-  p-password ~ .success-icon {
+  p-password~.success-icon {
     right: 3rem;
   }
 
@@ -319,6 +331,7 @@
   }
 
   &.has-success {
+
     :host ::ng-deep .p-inputtext,
     :host ::ng-deep .p-password input {
       border-color: var(--success-color);
@@ -467,7 +480,8 @@
     transition: opacity 0.3s ease;
   }
 
-  span, i {
+  span,
+  i {
     position: relative;
     z-index: 1;
   }
@@ -526,6 +540,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -537,6 +552,7 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -544,9 +560,26 @@
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
-  20%, 40%, 60%, 80% { transform: translateX(10px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-10px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(10px);
+  }
 }
 
 @keyframes scaleIn {
@@ -554,6 +587,7 @@
     opacity: 0;
     transform: scale(0);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -561,12 +595,16 @@
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translate(0, 0);
   }
+
   33% {
     transform: translate(30px, -30px);
   }
+
   66% {
     transform: translate(-20px, 20px);
   }
@@ -577,12 +615,15 @@
     bottom: -10px;
     opacity: 0;
   }
+
   10% {
     opacity: 1;
   }
+
   90% {
     opacity: 1;
   }
+
   100% {
     bottom: 100%;
     opacity: 0;
@@ -593,6 +634,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }

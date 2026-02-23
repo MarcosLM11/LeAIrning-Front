@@ -8,6 +8,7 @@ import { Header } from './header';
 import { AuthService } from '../../core/services/auth';
 import { DialogService } from '../../shared/services/dialog';
 import { User } from '../../core/models/auth.model';
+import { TranslateModule } from '@ngx-translate/core';
 
 describe('Header', () => {
   let component: Header;
@@ -41,7 +42,7 @@ describe('Header', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [Header],
+      imports: [Header, TranslateModule.forRoot()],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),

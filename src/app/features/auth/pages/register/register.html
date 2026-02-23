@@ -7,7 +7,10 @@
   </div>
 
   <!-- Theme Toggle -->
-  <app-theme-toggle />
+  <div class="header-actions">
+    <app-theme-toggle />
+    <app-language-toggle />
+  </div>
 
   <!-- Floating Card -->
   <div class="auth-card" [class.shake]="showShakeAnimation()">
@@ -17,9 +20,9 @@
         <div class="step" [class.active]="currentStep() >= 1" [class.completed]="currentStep() > 1">
           <div class="step-circle">
             @if (currentStep() > 1) {
-              <i class="pi pi-check"></i>
+            <i class="pi pi-check"></i>
             } @else {
-              <span>1</span>
+            <span>1</span>
             }
           </div>
           <span class="step-label">Nombre</span>
@@ -28,9 +31,9 @@
         <div class="step" [class.active]="currentStep() >= 2" [class.completed]="currentStep() > 2">
           <div class="step-circle">
             @if (currentStep() > 2) {
-              <i class="pi pi-check"></i>
+            <i class="pi pi-check"></i>
             } @else {
-              <span>2</span>
+            <span>2</span>
             }
           </div>
           <span class="step-label">Email</span>
@@ -39,9 +42,9 @@
         <div class="step" [class.active]="currentStep() >= 3" [class.completed]="currentStep() > 3">
           <div class="step-circle">
             @if (currentStep() > 3) {
-              <i class="pi pi-check"></i>
+            <i class="pi pi-check"></i>
             } @else {
-              <span>3</span>
+            <span>3</span>
             }
           </div>
           <span class="step-label">Contraseña</span>
@@ -67,213 +70,161 @@
       </div>
 
       @if (currentStep() === 1) {
-        <!-- Social Login -->
-        <app-social-login-buttons [isDisabled]="isSubmitting()" />
+      <!-- Social Login -->
+      <app-social-login-buttons [isDisabled]="isSubmitting()" />
 
-        <div class="divider">
-          <span>O regístrate con email</span>
-        </div>
+      <div class="divider">
+        <span>O regístrate con email</span>
+      </div>
       }
 
       @if (errorMessage()) {
-        <div class="error-alert">
-          <i class="pi pi-exclamation-circle"></i>
-          <span>{{ errorMessage() }}</span>
-        </div>
+      <div class="error-alert">
+        <i class="pi pi-exclamation-circle"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
       }
 
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
         <!-- Step 1: Name -->
         @if (currentStep() === 1) {
-          <div class="step-content" @slideIn>
-            <div class="form-field" [class.has-success]="nameControl?.valid && nameControl?.touched">
-              <label for="name">
-                <i class="pi pi-user"></i>
-                Nombre completo
-              </label>
-              <input
-                id="name"
-                type="text"
-                pInputText
-                formControlName="name"
-                placeholder="Juan García"
-                class="w-full"
-                [class.error]="nameControl?.invalid && nameControl?.touched"
-                (keydown.enter)="nextStep()"
-              />
-              @if (nameControl?.valid && nameControl?.touched) {
-                <i class="pi pi-check-circle success-icon"></i>
+        <div class="step-content" @slideIn>
+          <div class="form-field" [class.has-success]="nameControl?.valid && nameControl?.touched">
+            <label for="name">
+              <i class="pi pi-user"></i>
+              Nombre completo
+            </label>
+            <input id="name" type="text" pInputText formControlName="name" placeholder="Juan García" class="w-full"
+              [class.error]="nameControl?.invalid && nameControl?.touched" (keydown.enter)="nextStep()" />
+            @if (nameControl?.valid && nameControl?.touched) {
+            <i class="pi pi-check-circle success-icon"></i>
+            }
+            @if (nameControl?.invalid && nameControl?.touched) {
+            <small class="error-message">
+              <i class="pi pi-times-circle"></i>
+              @if (nameControl?.errors?.['required']) {
+              El nombre es obligatorio
               }
-              @if (nameControl?.invalid && nameControl?.touched) {
-                <small class="error-message">
-                  <i class="pi pi-times-circle"></i>
-                  @if (nameControl?.errors?.['required']) {
-                    El nombre es obligatorio
-                  }
-                  @if (nameControl?.errors?.['minlength']) {
-                    Mínimo 3 caracteres
-                  }
-                  @if (nameControl?.errors?.['maxlength']) {
-                    Máximo 50 caracteres
-                  }
-                </small>
+              @if (nameControl?.errors?.['minlength']) {
+              Mínimo 3 caracteres
               }
-            </div>
-
-            <button
-              type="button"
-              class="submit-btn"
-              (click)="nextStep()"
-              [disabled]="!isCurrentStepValid()"
-            >
-              <span>Siguiente</span>
-              <i class="pi pi-arrow-right"></i>
-            </button>
+              @if (nameControl?.errors?.['maxlength']) {
+              Máximo 50 caracteres
+              }
+            </small>
+            }
           </div>
+
+          <button type="button" class="submit-btn" (click)="nextStep()" [disabled]="!isCurrentStepValid()">
+            <span>Siguiente</span>
+            <i class="pi pi-arrow-right"></i>
+          </button>
+        </div>
         }
 
         <!-- Step 2: Email -->
         @if (currentStep() === 2) {
-          <div class="step-content" @slideIn>
-            <div class="form-field" [class.has-success]="emailControl?.valid && emailControl?.touched">
-              <label for="email">
-                <i class="pi pi-envelope"></i>
-                Correo Electrónico
-              </label>
-              <input 
-                id="email"
-                type="email"
-                pInputText
-                formControlName="email"
-                placeholder="tu@email.com"
-                class="w-full"
-                [class.error]="emailControl?.invalid && emailControl?.touched"
-                (keydown.enter)="nextStep()"
-              />
-              @if (emailControl?.valid && emailControl?.touched) {
-                <i class="pi pi-check-circle success-icon"></i>
+        <div class="step-content" @slideIn>
+          <div class="form-field" [class.has-success]="emailControl?.valid && emailControl?.touched">
+            <label for="email">
+              <i class="pi pi-envelope"></i>
+              Correo Electrónico
+            </label>
+            <input id="email" type="email" pInputText formControlName="email" placeholder="tu@email.com" class="w-full"
+              [class.error]="emailControl?.invalid && emailControl?.touched" (keydown.enter)="nextStep()" />
+            @if (emailControl?.valid && emailControl?.touched) {
+            <i class="pi pi-check-circle success-icon"></i>
+            }
+            @if (emailControl?.invalid && emailControl?.touched) {
+            <small class="error-message">
+              <i class="pi pi-times-circle"></i>
+              @if (emailControl?.errors?.['required']) {
+              El email es obligatorio
               }
-              @if (emailControl?.invalid && emailControl?.touched) {
-                <small class="error-message">
-                  <i class="pi pi-times-circle"></i>
-                  @if (emailControl?.errors?.['required']) {
-                    El email es obligatorio
-                  }
-                  @if (emailControl?.errors?.['email']) {
-                    Ingresa un email válido
-                  }
-                </small>
+              @if (emailControl?.errors?.['email']) {
+              Ingresa un email válido
               }
-            </div>
-
-            <div class="step-buttons">
-              <button 
-                type="button"
-                class="back-btn"
-                (click)="prevStep()"
-              >
-                <i class="pi pi-arrow-left"></i>
-                <span>Atrás</span>
-              </button>
-              <button 
-                type="button"
-                class="submit-btn"
-                (click)="nextStep()"
-                [disabled]="!isCurrentStepValid()"
-              >
-                <span>Siguiente</span>
-                <i class="pi pi-arrow-right"></i>
-              </button>
-            </div>
+            </small>
+            }
           </div>
+
+          <div class="step-buttons">
+            <button type="button" class="back-btn" (click)="prevStep()">
+              <i class="pi pi-arrow-left"></i>
+              <span>Atrás</span>
+            </button>
+            <button type="button" class="submit-btn" (click)="nextStep()" [disabled]="!isCurrentStepValid()">
+              <span>Siguiente</span>
+              <i class="pi pi-arrow-right"></i>
+            </button>
+          </div>
+        </div>
         }
 
         <!-- Step 3: Password -->
         @if (currentStep() === 3) {
-          <div class="step-content" @slideIn>
-            <div class="form-field" [class.has-success]="passwordControl?.valid && passwordControl?.touched">
-              <label for="password">
-                <i class="pi pi-lock"></i>
-                Contraseña
-              </label>
-              <p-password
-                id="password"
-                formControlName="password"
-                placeholder="••••••••"
-                [toggleMask]="true"
-                [feedback]="true"
-                promptLabel="Introduce una contraseña"
-                weakLabel="Débil"
-                mediumLabel="Media"
-                strongLabel="Fuerte"
-                styleClass="w-full"
-                inputStyleClass="w-full"
-                [class.error]="passwordControl?.invalid && passwordControl?.touched"
-              />
-              @if (passwordControl?.invalid && passwordControl?.touched) {
-                <small class="error-message">
-                  <i class="pi pi-times-circle"></i>
-                  @if (passwordControl?.errors?.['required']) {
-                    La contraseña es obligatoria
-                  }
-                  @if (passwordControl?.errors?.['minlength']) {
-                    Mínimo 12 caracteres
-                  }
-                </small>
+        <div class="step-content" @slideIn>
+          <div class="form-field" [class.has-success]="passwordControl?.valid && passwordControl?.touched">
+            <label for="password">
+              <i class="pi pi-lock"></i>
+              Contraseña
+            </label>
+            <p-password id="password" formControlName="password" placeholder="••••••••" [toggleMask]="true"
+              [feedback]="true" promptLabel="Introduce una contraseña" weakLabel="Débil" mediumLabel="Media"
+              strongLabel="Fuerte" styleClass="w-full" inputStyleClass="w-full"
+              [class.error]="passwordControl?.invalid && passwordControl?.touched" />
+            @if (passwordControl?.invalid && passwordControl?.touched) {
+            <small class="error-message">
+              <i class="pi pi-times-circle"></i>
+              @if (passwordControl?.errors?.['required']) {
+              La contraseña es obligatoria
               }
-            </div>
-
-            <div class="form-field" [class.has-success]="confirmPasswordControl?.valid && confirmPasswordControl?.touched && !registerForm.errors?.['passwordMismatch']">
-              <label for="confirmPassword">
-                <i class="pi pi-lock"></i>
-                Confirmar contraseña
-              </label>
-              <p-password 
-                id="confirmPassword"
-                formControlName="confirmPassword"
-                placeholder="••••••••"
-                [toggleMask]="true"
-                [feedback]="false"
-                styleClass="w-full"
-                inputStyleClass="w-full"
-                [class.error]="(registerForm.errors?.['passwordMismatch'] || confirmPasswordControl?.invalid) && (confirmPasswordControl?.touched || confirmPasswordControl?.dirty)"
-              />
-              @if (confirmPasswordControl?.valid && !registerForm.errors?.['passwordMismatch'] && confirmPasswordControl?.touched) {
-                <i class="pi pi-check-circle success-icon"></i>
+              @if (passwordControl?.errors?.['minlength']) {
+              Mínimo 12 caracteres
               }
-              @if (registerForm.errors?.['passwordMismatch'] && (confirmPasswordControl?.touched || confirmPasswordControl?.dirty)) {
-                <small class="error-message">
-                  <i class="pi pi-times-circle"></i>
-                  Las contraseñas no coinciden
-                </small>
-              }
-            </div>
-
-            <div class="step-buttons">
-              <button 
-                type="button"
-                class="back-btn"
-                (click)="prevStep()"
-              >
-                <i class="pi pi-arrow-left"></i>
-                <span>Atrás</span>
-              </button>
-              <button 
-                type="submit"
-                class="submit-btn"
-                [disabled]="!isCurrentStepValid() || isSubmitting()"
-                [class.loading]="isSubmitting()"
-              >
-                @if (isSubmitting()) {
-                  <i class="pi pi-spin pi-spinner"></i>
-                  <span>Creando cuenta...</span>
-                } @else {
-                  <span>Crear Cuenta</span>
-                  <i class="pi pi-check"></i>
-                }
-              </button>
-            </div>
+            </small>
+            }
           </div>
+
+          <div class="form-field"
+            [class.has-success]="confirmPasswordControl?.valid && confirmPasswordControl?.touched && !registerForm.errors?.['passwordMismatch']">
+            <label for="confirmPassword">
+              <i class="pi pi-lock"></i>
+              Confirmar contraseña
+            </label>
+            <p-password id="confirmPassword" formControlName="confirmPassword" placeholder="••••••••"
+              [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full"
+              [class.error]="(registerForm.errors?.['passwordMismatch'] || confirmPasswordControl?.invalid) && (confirmPasswordControl?.touched || confirmPasswordControl?.dirty)" />
+            @if (confirmPasswordControl?.valid && !registerForm.errors?.['passwordMismatch'] &&
+            confirmPasswordControl?.touched) {
+            <i class="pi pi-check-circle success-icon"></i>
+            }
+            @if (registerForm.errors?.['passwordMismatch'] && (confirmPasswordControl?.touched ||
+            confirmPasswordControl?.dirty)) {
+            <small class="error-message">
+              <i class="pi pi-times-circle"></i>
+              Las contraseñas no coinciden
+            </small>
+            }
+          </div>
+
+          <div class="step-buttons">
+            <button type="button" class="back-btn" (click)="prevStep()">
+              <i class="pi pi-arrow-left"></i>
+              <span>Atrás</span>
+            </button>
+            <button type="submit" class="submit-btn" [disabled]="!isCurrentStepValid() || isSubmitting()"
+              [class.loading]="isSubmitting()">
+              @if (isSubmitting()) {
+              <i class="pi pi-spin pi-spinner"></i>
+              <span>Creando cuenta...</span>
+              } @else {
+              <span>Crear Cuenta</span>
+              <i class="pi pi-check"></i>
+              }
+            </button>
+          </div>
+        </div>
         }
       </form>
 
@@ -286,12 +237,8 @@
   <!-- Particles Effect -->
   <div class="particles">
     @for (particle of particles; track $index) {
-      <div 
-        class="particle" 
-        [style.left.%]="particle.x"
-        [style.animation-delay]="particle.delay + 's'"
-        [style.animation-duration]="particle.duration + 's'"
-      ></div>
+    <div class="particle" [style.left.%]="particle.x" [style.animation-delay]="particle.delay + 's'"
+      [style.animation-duration]="particle.duration + 's'"></div>
     }
   </div>
 </div>

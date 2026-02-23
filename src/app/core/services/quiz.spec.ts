@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { QuizService } from './quiz';
 import { environment } from '../../../environments/environment';
+import { TranslateModule } from '@ngx-translate/core';
 
 describe('QuizService', () => {
   let service: QuizService;
@@ -12,6 +13,7 @@ describe('QuizService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [TranslateModule.forRoot()],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -33,6 +35,7 @@ describe('QuizService', () => {
     const req = httpMock.expectOne(r => r.url === `${apiUrl}/generate/doc-1` && r.method === 'POST');
     expect(req.request.params.get('numberOfQuestions')).toBe('5');
     expect(req.request.params.get('difficulty')).toBe('MEDIUM');
+    expect(req.request.params.get('language')).toBe('es');
     req.flush({ id: 'q-1', questions: [] });
   });
 

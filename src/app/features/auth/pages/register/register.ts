@@ -10,6 +10,7 @@ import { ThemeToggleComponent } from '../../../../shared/components/theme-toggle
 import { AuthIllustrationComponent } from '../../../../shared/components/auth-illustration/auth-illustration.component';
 import { SocialLoginButtons } from '../../../../shared/components/social-login-buttons/social-login-buttons';
 import { CommonModule } from '@angular/common';
+import { LanguageToggleComponent } from '../../../../shared/components/language-toggle/language-toggle';
 
 @Component({
   selector: 'app-register',
@@ -21,6 +22,7 @@ import { CommonModule } from '@angular/common';
     InputTextModule,
     PasswordModule,
     ThemeToggleComponent,
+    LanguageToggleComponent,
     AuthIllustrationComponent,
     SocialLoginButtons
   ],
@@ -45,7 +47,7 @@ export class Register implements OnInit {
   errorMessage = signal<string | null>(null);
   showShakeAnimation = signal<boolean>(false);
   currentStep = signal<number>(1);
-  
+
   // Particles for background animation
   particles = Array.from({ length: 20 }, (_, i) => ({
     x: Math.random() * 100,
@@ -134,9 +136,9 @@ export class Register implements OnInit {
     }
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
-    
+
     const { name, email, password } = this.registerForm.value;
-    
+
     this.authService.register({ email, name, role: 'USER', password }).subscribe({
       next: () => {
         this.isSubmitting.set(false);
@@ -147,7 +149,7 @@ export class Register implements OnInit {
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        
+
         if (err.status === 409) {
           this.errorMessage.set('El email ya está registrado');
         } else if (err.status === 400) {
@@ -155,7 +157,7 @@ export class Register implements OnInit {
         } else {
           this.errorMessage.set('Error al registrarse. Intenta nuevamente.');
         }
-        
+
         this.triggerShakeAnimation();
       }
     });

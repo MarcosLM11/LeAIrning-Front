@@ -1,0 +1,21 @@
+{
+    "HEADER": {
+        "SEARCH_PLACEHOLDER": "Search documents...",
+        "USER": "User",
+        "EDIT_PROFILE": "Edit Profile",
+        "EDIT_PROFILE_DESC": "Modify your personal information",
+        "MY_PROFILE": "My Profile",
+        "MY_PROFILE_DESC": "View your public profile",
+        "SETTINGS": "Settings",
+        "SETTINGS_DESC": "Application preferences",
+        "LOGOUT": "Logout"
+    },
+    "SIDEBAR": {
+        "MENU": "Menu",
+        "COLLAPSE_MENU": "Collapse menu",
+        "DASHBOARD": "Dashboard",
+        "DOCUMENTS": "Documents",
+        "CHAT": "Chat",
+        "QUIZZES": "Quizzes"
+    }
+}

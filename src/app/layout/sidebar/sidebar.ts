@@ -2,6 +2,7 @@ import { Component, signal, inject, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth';
+import { TranslateModule } from '@ngx-translate/core';
 
 interface MenuItem {
   label: string; //texto del menu
@@ -12,7 +13,7 @@ interface MenuItem {
 
 @Component({
   selector: 'app-sidebar',
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, TranslateModule],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })
@@ -30,10 +31,10 @@ export class Sidebar {
 
   // Array de items del menú
   menuItems: MenuItem[] = [
-    { label: 'Dashboard', icon: 'pi pi-home', route: '/dashboard' },
-    { label: 'Documents', icon: 'pi pi-file', route: '/documents' },
-    { label: 'Chat', icon: 'pi pi-comments', route: '/chat' },
-    { label: 'Quizzes', icon: 'pi pi-question-circle', route: '/quizzes/generate' },
+    { label: 'SIDEBAR.DASHBOARD', icon: 'pi pi-home', route: '/dashboard' },
+    { label: 'SIDEBAR.DOCUMENTS', icon: 'pi pi-file', route: '/documents' },
+    { label: 'SIDEBAR.CHAT', icon: 'pi pi-comments', route: '/chat' },
+    { label: 'SIDEBAR.QUIZZES', icon: 'pi pi-question-circle', route: '/quizzes/generate' },
 
   ];
 

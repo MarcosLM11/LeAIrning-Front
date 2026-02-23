@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { ChatService } from './chat';
 import { environment } from '../../../environments/environment';
+import { TranslateModule } from '@ngx-translate/core';
 
 describe('ChatService', () => {
   let service: ChatService;
@@ -13,6 +14,7 @@ describe('ChatService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [TranslateModule.forRoot()],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -103,7 +105,7 @@ describe('ChatService', () => {
     const req = httpMock.expectOne(`${chatUrl}/ask`);
     expect(req.request.method).toBe('POST');
     expect(req.request.headers.get('X-Conversation-Id')).toBe('c-1');
-    expect(req.request.body).toEqual({ question: 'What is AI?' });
+    expect(req.request.body).toEqual({ question: 'What is AI?', language: 'es' });
     req.flush({ answer: 'AI is...', conversationId: 'c-1', timestamp: '2024-01-01T00:00:00Z' });
   });
 

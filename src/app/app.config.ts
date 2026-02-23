@@ -6,6 +6,8 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
+import { provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { routes } from './app.routes';
 
@@ -19,6 +21,13 @@ export const appConfig: ApplicationConfig = {
       withFetch(),
       withInterceptors([authInterceptor, errorInterceptor])
     ),
+    provideTranslateService({
+      defaultLanguage: 'es'
+    }),
+    provideTranslateHttpLoader({
+      prefix: './i18n/',
+      suffix: '.json'
+    }),
     MessageService,
     ConfirmationService
   ]

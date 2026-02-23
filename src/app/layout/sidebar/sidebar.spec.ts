@@ -6,6 +6,7 @@ import { By } from '@angular/platform-browser';
 import { Sidebar } from './sidebar';
 import { AuthService } from '../../core/services/auth';
 import { User } from '../../core/models/auth.model';
+import { TranslateModule } from '@ngx-translate/core';
 
 describe('Sidebar', () => {
   let component: Sidebar;
@@ -26,7 +27,7 @@ describe('Sidebar', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [Sidebar],
+      imports: [Sidebar, TranslateModule.forRoot()],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -56,6 +57,6 @@ describe('Sidebar', () => {
     await fixture.whenStable();
 
     const userInfo = fixture.debugElement.query(By.css('.user-info .menu-label'));
-    expect(userInfo.nativeElement.textContent).toContain('Usuario');
+    expect(userInfo.nativeElement.textContent).toContain('HEADER.USER');
   });
 });

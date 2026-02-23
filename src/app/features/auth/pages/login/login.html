@@ -7,7 +7,10 @@
   </div>
 
   <!-- Theme Toggle -->
-  <app-theme-toggle />
+  <div class="header-actions">
+    <app-theme-toggle />
+    <app-language-toggle />
+  </div>
 
   <!-- Floating Card -->
   <div class="auth-card" [class.shake]="showShakeAnimation()">
@@ -38,10 +41,10 @@
       </div>
 
       @if (errorMessage()) {
-        <div class="error-alert">
-          <i class="pi pi-exclamation-circle"></i>
-          <span>{{ errorMessage() }}</span>
-        </div>
+      <div class="error-alert">
+        <i class="pi pi-exclamation-circle"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
       }
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
@@ -51,28 +54,21 @@
             <i class="pi pi-envelope"></i>
             Correo Electrónico
           </label>
-          <input
-            id="email"
-            type="email"
-            pInputText
-            formControlName="email"
-            placeholder="tu@email.com"
-            class="w-full"
-            [class.error]="emailControl?.invalid && emailControl?.touched"
-          />
+          <input id="email" type="email" pInputText formControlName="email" placeholder="tu@email.com" class="w-full"
+            [class.error]="emailControl?.invalid && emailControl?.touched" />
           @if (emailControl?.valid && emailControl?.touched) {
-            <i class="pi pi-check-circle success-icon"></i>
+          <i class="pi pi-check-circle success-icon"></i>
           }
           @if (emailControl?.invalid && emailControl?.touched) {
-            <small class="error-message">
-              <i class="pi pi-times-circle"></i>
-              @if (emailControl?.errors?.['required']) {
-                El correo es obligatorio
-              }
-              @if (emailControl?.errors?.['email']) {
-                Ingresa un correo válido
-              }
-            </small>
+          <small class="error-message">
+            <i class="pi pi-times-circle"></i>
+            @if (emailControl?.errors?.['required']) {
+            El correo es obligatorio
+            }
+            @if (emailControl?.errors?.['email']) {
+            Ingresa un correo válido
+            }
+          </small>
           }
         </div>
 
@@ -82,26 +78,19 @@
             <i class="pi pi-lock"></i>
             Contraseña
           </label>
-          <p-password 
-            id="password"
-            formControlName="password"
-            placeholder="••••••••"
-            [toggleMask]="true"
-            [feedback]="false"
-            styleClass="w-full"
-            inputStyleClass="w-full"
-            [class.error]="passwordControl?.invalid && passwordControl?.touched"
-          />
+          <p-password id="password" formControlName="password" placeholder="••••••••" [toggleMask]="true"
+            [feedback]="false" styleClass="w-full" inputStyleClass="w-full"
+            [class.error]="passwordControl?.invalid && passwordControl?.touched" />
           @if (passwordControl?.invalid && passwordControl?.touched) {
-            <small class="error-message">
-              <i class="pi pi-times-circle"></i>
-              @if (passwordControl?.errors?.['required']) {
-                La contraseña es obligatoria
-              }
-              @if (passwordControl?.errors?.['minlength']) {
-                Mínimo 6 caracteres
-              }
-            </small>
+          <small class="error-message">
+            <i class="pi pi-times-circle"></i>
+            @if (passwordControl?.errors?.['required']) {
+            La contraseña es obligatoria
+            }
+            @if (passwordControl?.errors?.['minlength']) {
+            Mínimo 6 caracteres
+            }
+          </small>
           }
         </div>
 
@@ -114,18 +103,14 @@
         </div>
 
         <!-- Submit button -->
-        <button 
-          type="submit"
-          class="submit-btn"
-          [disabled]="loginForm.invalid || isSubmitting()"
-          [class.loading]="isSubmitting()"
-        >
+        <button type="submit" class="submit-btn" [disabled]="loginForm.invalid || isSubmitting()"
+          [class.loading]="isSubmitting()">
           @if (isSubmitting()) {
-            <i class="pi pi-spin pi-spinner"></i>
-            <span>Iniciando sesión...</span>
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>Iniciando sesión...</span>
           } @else {
-            <span>Iniciar Sesión</span>
-            <i class="pi pi-arrow-right"></i>
+          <span>Iniciar Sesión</span>
+          <i class="pi pi-arrow-right"></i>
           }
         </button>
       </form>
@@ -139,12 +124,8 @@
   <!-- Particles Effect -->
   <div class="particles">
     @for (particle of particles; track $index) {
-      <div 
-        class="particle" 
-        [style.left.%]="particle.x"
-        [style.animation-delay]="particle.delay + 's'"
-        [style.animation-duration]="particle.duration + 's'"
-      ></div>
+    <div class="particle" [style.left.%]="particle.x" [style.animation-delay]="particle.delay + 's'"
+      [style.animation-duration]="particle.duration + 's'"></div>
     }
   </div>
 </div>

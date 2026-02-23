@@ -1,12 +1,8 @@
 <aside class="sidebar" [class.collapsed]="isCollapsed()">
   <!-- Header del Sidebar -->
   <div class="sidebar-header">
-    <h2 class="sidebar-title">Menu</h2>
-    <button 
-      class="collapse-btn"
-      (click)="toggleSidebar()"
-      title="Colapsar menú"
-    >
+    <h2 class="sidebar-title">{{ 'SIDEBAR.MENU' | translate }}</h2>
+    <button class="collapse-btn" (click)="toggleSidebar()" title="{{ 'SIDEBAR.COLLAPSE_MENU' | translate }}">
       <i [class]="isCollapsed() ? 'pi pi-angle-right' : 'pi pi-angle-left'"></i>
     </button>
   </div>
@@ -15,19 +11,15 @@
   <nav class="sidebar-nav">
     <ul class="menu-list">
       @for (item of menuItems; track item.route) {
-        <li class="menu-item">
-          <a 
-            [routerLink]="item.route"
-            routerLinkActive="active"
-            class="menu-link"
-          >
-            <i [class]="item.icon" class="menu-icon"></i>
-            <span class="menu-label">{{ item.label }}</span>
-            @if (item.badge) {
-              <span class="menu-badge">{{ item.badge }}</span>
-            }
-          </a>
-        </li>
+      <li class="menu-item">
+        <a [routerLink]="item.route" routerLinkActive="active" class="menu-link">
+          <i [class]="item.icon" class="menu-icon"></i>
+          <span class="menu-label">{{ item.label | translate }}</span>
+          @if (item.badge) {
+          <span class="menu-badge">{{ item.badge }}</span>
+          }
+        </a>
+      </li>
       }
     </ul>
   </nav>
@@ -36,7 +28,7 @@
   <div class="sidebar-footer">
     <div class="user-info">
       <i class="pi pi-user menu-icon"></i>
-      <span class="menu-label">{{ currentUser()?.name || 'Usuario' }}</span>
+      <span class="menu-label">{{ currentUser()?.name || ('HEADER.USER' | translate) }}</span>
     </div>
   </div>
 </aside>

@@ -1,0 +1,21 @@
+{
+    "HEADER": {
+        "SEARCH_PLACEHOLDER": "Buscar documentos...",
+        "USER": "Usuario",
+        "EDIT_PROFILE": "Editar Perfil",
+        "EDIT_PROFILE_DESC": "Modifica tu información personal",
+        "MY_PROFILE": "Mi Perfil",
+        "MY_PROFILE_DESC": "Ver tu perfil público",
+        "SETTINGS": "Configuración",
+        "SETTINGS_DESC": "Preferencias de la aplicación",
+        "LOGOUT": "Cerrar Sesión"
+    },
+    "SIDEBAR": {
+        "MENU": "Menú",
+        "COLLAPSE_MENU": "Colapsar menú",
+        "DASHBOARD": "Dashboard",
+        "DOCUMENTS": "Documentos",
+        "CHAT": "Chat",
+        "QUIZZES": "Cuestionarios"
+    }
+}
