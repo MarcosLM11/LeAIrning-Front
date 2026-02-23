@@ -15,9 +15,13 @@ describe('StorageService', () => {
       });
       service = TestBed.inject(StorageService);
       localStorage.clear();
+      sessionStorage.clear();
     });
 
-    afterEach(() => localStorage.clear());
+    afterEach(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
 
     it('should set and get JSON values', () => {
       service.set('key', { a: 1 });
@@ -56,6 +60,14 @@ describe('StorageService', () => {
     it('should return null for invalid JSON', () => {
       localStorage.setItem('bad', 'not json{');
       expect(service.get('bad')).toBeNull();
+    });
+
+    it('should set and get values in session storage', () => {
+      service.setString('token', 'session-token', true);
+      expect(service.getString('token')).toBe('session-token');
+      expect(localStorage.getItem('token')).toBeNull();
+      expect(sessionStorage.getItem('token')).toBe('session-token');
+      expect(service.isSession('token')).toBe(true);
     });
   });
 

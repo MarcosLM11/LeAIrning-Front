@@ -55,14 +55,15 @@ export class AuthService {
     return false;
   }
 
-  login(credentials: LoginRequest): Observable<User> {
+  login(credentials: LoginRequest, rememberMe: boolean = true): Observable<User> {
+    const sessionOnly = !rememberMe;
     return this.http.post<AuthCodeResponse>(`${this.authUrl}/login`, credentials).pipe(
       switchMap(response => this.exchangeCode(response.auth_code)),
       switchMap(tokens => {
-        this.storeTokens(tokens);
+        this.storeTokens(tokens, sessionOnly);
         return this.fetchCurrentUser(tokens.access_token);
       }),
-      tap(user => this.setCurrentUser(user))
+      tap(user => this.setCurrentUser(user, sessionOnly))
     );
   }
 
@@ -150,13 +151,15 @@ export class AuthService {
     );
   }
 
-  private storeTokens(tokens: TokenPair): void {
-    this.storage.setString(this.TOKEN_KEY, tokens.access_token);
-    this.storage.setString(this.REFRESH_TOKEN_KEY, tokens.refresh_token);
+  private storeTokens(tokens: TokenPair, sessionOnly?: boolean): void {
+    const useSession = sessionOnly ?? this.storage.isSession(this.TOKEN_KEY);
+    this.storage.setString(this.TOKEN_KEY, tokens.access_token, useSession);
+    this.storage.setString(this.REFRESH_TOKEN_KEY, tokens.refresh_token, useSession);
   }
 
-  private setCurrentUser(user: User): void {
-    this.storage.set(this.USER_KEY, user);
+  private setCurrentUser(user: User, sessionOnly?: boolean): void {
+    const useSession = sessionOnly ?? this.storage.isSession(this.USER_KEY);
+    this.storage.set(this.USER_KEY, user, useSession);
     this.currentUserSignal.set(user);
   }
 }

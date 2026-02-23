@@ -16,6 +16,7 @@ describe('AuthService', () => {
     set: ReturnType<typeof vi.fn>;
     setString: ReturnType<typeof vi.fn>;
     remove: ReturnType<typeof vi.fn>;
+    isSession: ReturnType<typeof vi.fn>;
   };
   let router: Router;
   const authUrl = `${environment.apiUrl}/auth`;
@@ -29,6 +30,7 @@ describe('AuthService', () => {
       set: vi.fn(),
       setString: vi.fn(),
       remove: vi.fn(),
+      isSession: vi.fn().mockReturnValue(false),
     };
 
     TestBed.configureTestingModule({

@@ -71,7 +71,7 @@ export class Login {
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
 
-    this.authService.login(this.loginForm.value).subscribe({
+    this.authService.login(this.loginForm.value, this.rememberMe).subscribe({
       next: () => {
         this.isSubmitting.set(false);
         // Success animation here (could trigger confetti)

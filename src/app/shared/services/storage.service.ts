@@ -13,7 +13,7 @@ export class StorageService {
     if (!this.isBrowser) return null;
 
     try {
-      const item = localStorage.getItem(key);
+      const item = sessionStorage.getItem(key) || localStorage.getItem(key);
       return item ? JSON.parse(item) : null;
     } catch {
       return null;
@@ -22,31 +22,40 @@ export class StorageService {
 
   getString(key: string): string | null {
     if (!this.isBrowser) return null;
-    return localStorage.getItem(key);
+    return sessionStorage.getItem(key) || localStorage.getItem(key);
   }
 
-  set<T>(key: string, value: T): void {
-    if (!this.isBrowser) return;
-    localStorage.setItem(key, JSON.stringify(value));
+  isSession(key: string): boolean {
+    if (!this.isBrowser) return false;
+    return sessionStorage.getItem(key) !== null;
   }
 
-  setString(key: string, value: string): void {
+  set<T>(key: string, value: T, sessionOnly: boolean = false): void {
     if (!this.isBrowser) return;
-    localStorage.setItem(key, value);
+    const storage = sessionOnly ? sessionStorage : localStorage;
+    storage.setItem(key, JSON.stringify(value));
+  }
+
+  setString(key: string, value: string, sessionOnly: boolean = false): void {
+    if (!this.isBrowser) return;
+    const storage = sessionOnly ? sessionStorage : localStorage;
+    storage.setItem(key, value);
   }
 
   remove(key: string): void {
     if (!this.isBrowser) return;
     localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
   }
 
   clear(): void {
     if (!this.isBrowser) return;
     localStorage.clear();
+    sessionStorage.clear();
   }
 
   has(key: string): boolean {
     if (!this.isBrowser) return false;
-    return localStorage.getItem(key) !== null;
+    return sessionStorage.getItem(key) !== null || localStorage.getItem(key) !== null;
   }
 }
