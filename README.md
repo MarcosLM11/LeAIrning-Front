@@ -36,7 +36,8 @@
 
 ## Descripcion
 
-El frontend de LeAIrning es una **Single Page Application** construida con Angular 20, que utiliza exclusivamente **componentes standalone** (sin NgModules), lazy loading por feature, y Server-Side Rendering (SSR) con Express. Se conecta al monolito Spring Boot en `http://localhost:8080`.
+El frontend de LeAIrning es una **Single Page Application** construida con Angular 20, que utiliza exclusivamente **componentes standalone** (sin NgModules), lazy loading por feature, y Server-Side Rendering (SSR) con Express. 
+Se conecta al backend Spring Boot en `http://localhost:8080`. Puedes consultar el código del backend en su respectivo repositorio: [LeAIrning Backend](https://github.com/MarcosLM11/LeAIrning-Back/tree/microservices-v1).
 
 La interfaz proporciona gestión de documentos, chat conversacional con IA (RAG), generación de quizzes, y un sistema de autenticación completo con login tradicional y OAuth2 (Google, GitHub).
 
